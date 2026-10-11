@@ -1,6 +1,6 @@
 import express from 'express';
 import {registerMcpRequests} from './mcp-routes.js';
-import {isMcpConnectionPrompt,nameFromPrompt} from '../../packages/mcp/contracts.js';
+import {isMcpConnectionPrompt,mcpKey,nameFromPrompt} from '../../packages/mcp/contracts.js';
 import {randomUUID} from 'node:crypto';
 import {z} from 'zod';
 import {type Precedent} from './service.js';
@@ -13,7 +13,10 @@ import {impactPreview} from '../../packages/proposals/impact.js';
 import {candidatePlaybooks,discoverPlaybooks,distillPlaybook,playbookComparison,playbookContext,voyagePlaybookRanker,type Playbook} from '../../packages/playbooks/index.js';
 import {agentEngineIndex} from '../../packages/playbooks/agent-engine.js';
 import type {McpClassifier} from '../../packages/mcp/classify.js';
-import {raindropCheck,type RaindropCheck} from '../../packages/observability/raindrop-check.js';
+import {raindropCheck,raindropMcpEvidence,type RaindropCheck} from '../../packages/observability/raindrop-check.js';
+import {raindropSignal} from '../../packages/observability/index.js';
+import {recommendMcp,type McpRaindropEvidence} from '../../packages/mcp/recommend.js';
+import {demandFor} from '../../packages/mcp/demand.js';
 import {prepareDemo,type DemoCheck,type DemoRequest} from '../../packages/demo-prepare/index.js';
 import {blastRadius} from '../../packages/incidents/index.js';
 import {approveCandidate,departmentKnowledge,knowledgeComparison,knowledgeContext,proposeFromRun,rankKnowledge,rejectCandidate} from '../../packages/knowledge/index.js';
@@ -27,7 +30,7 @@ import {discoverTenable,mcpDecision,tenableEndpoint,type McpDiscovery} from '../
 const actionInput=actionInputSchema;
 export interface AuthenticatedPrincipal{userId:string;role:'employee'|'admin';tenantId:string;department?:Department;}
 export interface IdentityAdapter{resolve(req:express.Request):Promise<AuthenticatedPrincipal|null>;}
-export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGateway,identity?:IdentityAdapter,telemetry?:BackendTelemetry,applicationMonitor?:ApplicationMonitor,mcpDiscover:()=>Promise<McpDiscovery>=discoverTenable,reviewedDiscover?:(endpoint:string)=>Promise<McpDiscovery>,plannerTransport?:PlannerTransport,mcpClassifier?:McpClassifier,checkRaindrop:(runIds:string[])=>Promise<RaindropCheck>=runIds=>raindropCheck(runIds)){
+export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGateway,identity?:IdentityAdapter,telemetry?:BackendTelemetry,applicationMonitor?:ApplicationMonitor,mcpDiscover:()=>Promise<McpDiscovery>=discoverTenable,reviewedDiscover?:(endpoint:string)=>Promise<McpDiscovery>,plannerTransport?:PlannerTransport,mcpClassifier?:McpClassifier,checkRaindrop:(runIds:string[])=>Promise<RaindropCheck>=runIds=>raindropCheck(runIds),mcpEvidence:(mcp:string)=>Promise<McpRaindropEvidence>=mcp=>raindropMcpEvidence(mcp),raindropSignalSender=telemetry?raindropSignal():undefined){
  const runtime=asRuntime(source);
  // Read-only views (display, lookups) use a consistent snapshot outside the write queue.
  const read=<T>(fn:(service:Precedent)=>T|Promise<T>)=>runtime.read?runtime.read(fn):runtime.run(fn);const playbookIndex=agentEngineIndex()??runtime.playbookIndex;
@@ -74,7 +77,7 @@ export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGatew
  const contextVisible=(context:any,principal:AuthenticatedPrincipal)=>!context?.scope||(context.scope.tenantId===principal.tenantId&&(context.scope.role!=='admin'||principal.role==='admin'));
  const owned=(res:express.Response,id:string)=>{if(!res.locals.principal.sessions.has(id))throw Object.assign(new Error('Session access denied'),{status:403});};
  app.get('/api/evaluations',(_req,res)=>res.json(runEvaluations()));
- app.get('/api/state',async(_req,res)=>{const state={...await sharedSnapshot()};const principal=res.locals.principal;state.mcpRequests=state.mcpRequests.filter(record=>record.tenantId===principal.tenantId&&(!identity||principal.role==='admin'||principal.sessions.has(record.sessionId)));state.mcpDemand=(state.mcpDemand??[]).filter((d:Record<string,any>)=>d.tenantId===principal.tenantId).map((d:Record<string,any>)=>principal.role==='admin'?d:{...d,requesterIds:[],requestIds:[]});state.events=state.events.filter(event=>contextVisible(event.context,principal));state.runs=state.runs.filter(record=>contextVisible(record.context,principal)&&(!identity||principal.role==='admin'||principal.sessions.has(record.sessionId)));state.episodes=state.episodes.filter(episode=>episode.tenantId===principal.tenantId&&episode.visibleRoles?.includes(principal.role));
+ app.get('/api/state',async(_req,res)=>{const state={...await sharedSnapshot()};const principal=res.locals.principal;const pendingIds=new Set(state.mcpRequests.filter((r:Record<string,any>)=>r.status==='PENDING'&&r.tenantId===principal.tenantId).map((r:Record<string,any>)=>r.id));state.mcpRequests=state.mcpRequests.filter(record=>record.tenantId===principal.tenantId&&(!identity||principal.role==='admin'||principal.sessions.has(record.sessionId)));state.mcpDemand=(state.mcpDemand??[]).filter((d:Record<string,any>)=>d.tenantId===principal.tenantId).map((d:Record<string,any>)=>({...d,waiting:d.requestIds.filter((id:string)=>pendingIds.has(id)).length})).map((d:Record<string,any>)=>principal.role==='admin'?d:{...d,requesterIds:[],requestIds:[]});state.events=state.events.filter(event=>contextVisible(event.context,principal));state.runs=state.runs.filter(record=>contextVisible(record.context,principal)&&(!identity||principal.role==='admin'||principal.sessions.has(record.sessionId)));state.episodes=state.episodes.filter(episode=>episode.tenantId===principal.tenantId&&episode.visibleRoles?.includes(principal.role));
   // Agent memory is department data: non-administrators see only their own department's entries.
   const sameDepartment=(record:Record<string,any>)=>record.tenantId===principal.tenantId&&(principal.role==='admin'||(principal.department&&record.department===principal.department));state.knowledge=state.knowledge.filter(sameDepartment);state.memoryCandidates=state.memoryCandidates.filter(sameDepartment);const currentIds=new Set(state.executions.map(e=>e.id));res.json({...snapshotRecordsSchema.parse(state),planner:defaultPlanner==='eve'?'live eve model':'deterministic fixture; no live model',viewer:{role:principal.role,userId:principal.userId??null,tenantId:principal.tenantId},storage:runtime.mode,policyNotifications:runtime.notifications??{state:'local transaction events'},executionMode:gateway?'MCP connector with committed intent':'in-process synthetic receipts',downstreamReceipts:gateway?(await gateway.receipts()).filter(r=>currentIds.has(r.executionId)):[],livePlannerAvailable:Boolean(process.env.EVE_WORKER_URL),fixturePlannerAvailable,defaultPlanner});});
  app.get('/api/downstream',async(_req,res)=>res.json({receipts:gateway?await gateway.receipts():[],mode:gateway?'independent MCP receipt store':'not configured'}));
@@ -120,7 +123,16 @@ export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGatew
   res.json(await controlAs(res,s=>{if(s.policy().version!==input.expectedVersion)throw Object.assign(new Error('Policy changed; refresh before publishing'),{status:409});return s.publish({...s.policy(),tenableAllowed:input.tenableAllowed,deniedTools:[...new Set(input.deniedTools)]},false,input.reason);}));
  });
  const unknownMcp=registerMcpRequests(app,{run,controlAs,admin,owned,exclusive:fn=>gateway?gateway.exclusive(fn):fn(),discover:reviewedDiscover,...(mcpClassifier?{classify:mcpClassifier}:{}),
-  track:run=>telemetry?.trackRun({runId:run.id,mode:run.mode,scenario:'mcp',status:run.status,executions:[{action:{toolId:'mcp.connect'},status:run.mcpResult?.status??'UNKNOWN',decision:run.mcpResult?.decision}]})});
+  track:run=>telemetry?.trackRun({runId:run.id,mode:run.mode,scenario:'mcp',status:run.status,executions:[{action:{toolId:'mcp.connect'},status:run.mcpResult?.status??'UNKNOWN',decision:run.mcpResult?.decision}],
+   properties:{mcp:mcpKey(run.mcpResult?.name??'unknown'),outcome:String(run.mcpResult?.status??'UNKNOWN'),endpointHost:(()=>{try{return new URL(run.mcpResult?.endpoint).hostname;}catch{return 'none';}})(),judge:run.mcpResult?.classification?(run.mcpResult.classification.searchRelated?'search':'not-search'):'not-checked',department:String(run.department??'none')}}),
+  ...(raindropSignalSender?{signal:(runId,name,sentiment,properties)=>raindropSignalSender({eventId:runId,name,sentiment,properties})}:{})});
+ // MCP-04: InfoSec evidence and recommendation for one pending request (Raindrop informs, policy decides).
+ app.get('/api/mcp/requests/:id/evidence',async(req,res)=>{admin(res);
+  const local=await read(service=>{const request=service.store.get('mcp_request',String(req.params.id));if(!request||request.tenantId!==res.locals.principal.tenantId)throw Object.assign(new Error('Unknown MCP request'),{status:404});
+   const demand=demandFor(service,request);return {name:request.name,key:mcpKey(request.name),requesters:demand?.count??1,departments:demand?.departments??[],searchRelated:Boolean(service.store.get('run',request.runId)?.mcpResult?.classification?.searchRelated)};});
+  const raindrop=await mcpEvidence(local.key);
+  res.json({...local,raindrop,recommendation:recommendMcp({requesters:local.requesters,searchRelated:local.searchRelated,raindrop})});
+ });
  app.post('/api/mcp/comparison',async(req,res)=>{
   const {task,target}=z.object({task:z.string().trim().min(1).max(2000).refine(task=>isMcpConnectionPrompt(task)||(/\btenable\b/i.test(task)&&/\b(connect|add|install|download)\b/i.test(task)),'Explicitly request connecting an MCP'),target:z.enum(['both','baseline','governed']).default('both')}).strict().parse(req.body);
   if(!(/^tenable(?: |$)/i.test(nameFromPrompt(task))||(!/\bmcp\b/i.test(task)&&/\btenable\b/i.test(task)))){res.json(await unknownMcp(res,task,target));return;}

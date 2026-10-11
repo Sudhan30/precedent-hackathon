@@ -1,14 +1,15 @@
 import React,{useEffect,useState} from 'react';
 import './mission.css';
+import {devMode} from './dev.js';
 type Row=Record<string,any>;
 type Api=(path:string,body?:unknown,admin?:boolean)=>Promise<any>;
 interface Props{state:Row|null;busy:boolean;canAdmin:boolean;api:Api;act:(fn:()=>Promise<unknown>)=>Promise<void>}
 type Tab='playbooks'|'guardrails'|'killswitch'|'memory';
 const tabs:{id:Tab;label:string;hint:string}[]=[
- {id:'playbooks',label:'Learned playbooks',hint:'Agents learn from each other'},
  {id:'guardrails',label:'Self-writing guardrails',hint:'Rules improve from evidence'},
  {id:'killswitch',label:'Kill switch',hint:'See exposure, stop every agent'},
- {id:'memory',label:'Agent memory',hint:'Learn once, reuse per department'}
+ {id:'memory',label:'Agent memory',hint:'Learn once, reuse per department'},
+ {id:'playbooks',label:'Learned playbooks',hint:'Agents learn from each other'}
 ];
 const toolLabels:Record<string,string>={'example_connector.analyze':'LogLens connector MCP','demo_export.send':'Export connector MCP','internal_logs.search':'Internal log search','staging_db.read':'Staging database','metrics.query':'Service metrics','deploy_history.read':'Deploy history'};
 const label=(toolId:string)=>toolLabels[toolId]??toolId;
@@ -53,7 +54,7 @@ function DemoReset({api}:{api:Api}){
  </div>;
 }
 export function MissionControl({state,busy,canAdmin,api,act}:Props){
- const [tab,setTab]=useState<Tab>('playbooks');
+ const [tab,setTab]=useState<Tab>('guardrails');
  const move=(event:React.KeyboardEvent,index:number)=>{if(event.key!=='ArrowRight'&&event.key!=='ArrowLeft')return;const next=tabs[(index+(event.key==='ArrowRight'?1:tabs.length-1))%tabs.length];setTab(next.id);document.getElementById('mc-tab-'+next.id)?.focus();};
  return <section className="mission" aria-label="Mission Control">
   <div className="mission-heading"><span className="eyebrow">MISSION CONTROL</span><h2>Watch the harness learn, adapt and stop.</h2><p>Every number here is read from recorded runs, decisions and connector receipts.</p>{canAdmin&&<DemoReset api={api}/>}</div>
@@ -124,7 +125,7 @@ function GuardrailsTab({state,api,canAdmin,busy,act}:{state:Row|null;api:Api;can
    <span className="mc-badge info">Drafted by Precedent · base policy v{draft.baseVersion}</span>
    <h3>Suggested rule</h3><p className="mc-rule">{ruleText(draft.scope)}</p>
    <p>{draft.description}</p>
-   <small className="mc-muted">Evidence: {draft.count} recorded approvals · {draft.evidenceIds.map((id:string)=>id.slice(0,8)).join(', ')}</small>
+   {devMode&&<small className="mc-muted">Evidence: {draft.count} recorded approvals · {draft.evidenceIds.map((id:string)=>id.slice(0,8)).join(', ')}</small>}
    <div className={'mc-raindrop '+(raindrop?.status??'loading').toLowerCase()} role="status">
     <strong>{!raindrop&&!raindropError?'Checking Raindrop…':raindropError?'Raindrop check failed':raindrop?.status==='VERIFIED'?'✓ Verified in Raindrop':raindrop?.status==='FLAGGED'?'⚠ Held by Raindrop':raindrop?.status==='PENDING'?'… Raindrop check pending':raindrop?.status==='NOT_CONFIGURED'?'Raindrop second check off':'Raindrop unavailable'}</strong>
     <span>{raindropError||raindrop?.message||'Asking Raindrop how it recorded and judged the runs behind this rule.'}</span>

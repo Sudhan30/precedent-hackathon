@@ -31,9 +31,9 @@ export class BackendTelemetry{
  record(event:Event){if(!types.has(event.type))return;try{const span=this.tracer.startSpan('precedent.'+event.type,{attributes:eventAttributes(event),startTime:Number.isFinite(event.at)?event.at:undefined},this.scope.getStore()??ROOT_CONTEXT);if(['run.failed','execution.unknown','run.unknown'].includes(event.type))span.setStatus({code:SpanStatusCode.ERROR,message:'Outcome failed or unconfirmed'});span.end(Number.isFinite(event.at)?event.at:undefined);}catch{/* Optional telemetry cannot change an authorization outcome. */}}
  // One dashboard Event per run, sharing the run ID with its trace. Like the spans, it never
  // carries task text: only mode, scenario, outcome and each tool's policy verdict.
- trackRun(run:{runId:string;mode:string;scenario:string;status:string;executions:{action:{toolId:string};status:string;decision?:{verdict:string;ruleId?:string}}[]}){
+ trackRun(run:{runId:string;mode:string;scenario:string;status:string;executions:{action:{toolId:string};status:string;decision?:{verdict:string;ruleId?:string}}[];properties?:Record<string,string|number|boolean>}){
   if(!this.trackEvents)return;const count=(verdict:string)=>run.executions.filter(e=>e.decision?.verdict===verdict).length;
-  const properties={mode:run.mode,scenario:run.scenario,status:run.status,allowed:count('ALLOW'),blocked:count('BLOCK'),approvalRequired:count('REQUIRE_APPROVAL')};
+  const properties={...run.properties,mode:run.mode,scenario:run.scenario,status:run.status,allowed:count('ALLOW'),blocked:count('BLOCK'),approvalRequired:count('REQUIRE_APPROVAL')};
   const event={event_id:run.runId,user_id:'precedent-'+run.mode,event:'precedent.run',properties,ai_data:{input:`${run.mode} run · ${run.scenario}`,output:`${run.status} · ${properties.allowed} allowed · ${properties.blocked} blocked · ${properties.approvalRequired} need approval`,convo_id:run.runId,
    // Raindrop silently drops an event whose tool call carries any status other than "error",
    // so the outcome goes in result and status marks only genuine failures (UNKNOWN or FAILED).
@@ -42,6 +42,11 @@ export class BackendTelemetry{
  }
  async flush(){await this.provider.forceFlush();}
  async close(){await this.provider.shutdown().catch(()=>undefined);}
+}
+export function raindropSignal(key=process.env.RAINDROP_WRITE_KEY){
+ if(!key)return undefined;
+ return (signal:{eventId:string;name:string;sentiment:'POSITIVE'|'NEGATIVE';properties?:Record<string,string|number|boolean>})=>void fetch('https://api.raindrop.ai/v1/signals/track',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify([{event_id:signal.eventId,signal_name:signal.name,signal_type:'feedback',sentiment:signal.sentiment,properties:signal.properties??{}}]),signal:AbortSignal.timeout(5000)})
+  .then(response=>{if(!response.ok)console.warn('Raindrop signal export failed: HTTP '+response.status);}).catch(error=>console.warn('Raindrop signal export failed: '+(error as Error).name));
 }
 export function configuredTelemetry(key=process.env.RAINDROP_WRITE_KEY){return key?new BackendTelemetry(new OTLPHttpJsonTraceExporter({url:'https://api.raindrop.ai/v1/traces',headers:{Authorization:'Bearer '+key}}),undefined,
  events=>fetch('https://api.raindrop.ai/v1/events/track',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(events),signal:AbortSignal.timeout(5000)}).then(response=>{if(!response.ok)console.warn('Raindrop event export failed: HTTP '+response.status);return response;},error=>{console.warn('Raindrop event export failed: '+(error as Error).name);throw error;})):undefined;}

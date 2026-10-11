@@ -20,6 +20,8 @@ test('Mission Control shows a learned playbook, a self-written guardrail and the
  }
  await page.getByRole('link',{name:'Mission Control'}).click();await expect(page).toHaveURL(/\/mission$/);
  const panel=page.getByRole('tabpanel');
+ // Mission Control opens on the guardrails tab (demo order); playbooks is the last tab.
+ await page.getByRole('tab',{name:/Learned playbooks/}).click();
  await expect(panel).toContainText('Investigate why checkout is failing for customer Globex');
  await expect(panel).toContainText('Internal log search');await expect(panel).toContainText('Agent B followed the playbook');await expect(panel).toContainText('Agent A (first day)');
  await page.screenshot({path:'.data/mission-playbooks.png',fullPage:true});

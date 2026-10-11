@@ -11,11 +11,11 @@ import {currentRequest,draftRequest,reviewRequest,submitRequest,updateRequest} f
 import {endpointFromPrompt,endpointSchema,mcpKey,mcpNameSchema,nameFromPrompt} from '../../packages/mcp/contracts.js';
 
 type Run=<T>(fn:(service:Precedent)=>T|Promise<T>)=>Promise<T>;
-interface Dependencies{run:Run;controlAs:<T>(res:express.Response,fn:(service:Precedent)=>T|Promise<T>)=>Promise<T>;exclusive:<T>(fn:()=>Promise<T>)=>Promise<T>;admin:(res:express.Response)=>void;owned:(res:express.Response,id:string)=>void;discover?:(endpoint:string)=>Promise<McpDiscovery>;classify?:McpClassifier;track?:(run:Record<string,any>)=>void;}
+interface Dependencies{run:Run;controlAs:<T>(res:express.Response,fn:(service:Precedent)=>T|Promise<T>)=>Promise<T>;exclusive:<T>(fn:()=>Promise<T>)=>Promise<T>;admin:(res:express.Response)=>void;owned:(res:express.Response,id:string)=>void;discover?:(endpoint:string)=>Promise<McpDiscovery>;classify?:McpClassifier;track?:(run:Record<string,any>)=>void;signal?:(runId:string,name:string,sentiment:'POSITIVE'|'NEGATIVE',properties:Record<string,string|number|boolean>)=>void;}
 const conflict=(message:string)=>Object.assign(new Error(message),{status:409});
-export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive,admin,owned,discover=discoverReviewedMcp,classify=claudeClassifier(),track}:Dependencies){
+export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive,admin,owned,discover=discoverReviewedMcp,classify=claudeClassifier(),track,signal}:Dependencies){
  // Each MCP run that reaches an outcome becomes one Raindrop event (keyed by its run id).
- const finished=<T extends Record<string,any>>(run:T)=>{if(run?.status==='FINISHED')try{track?.(run);}catch{/* telemetry never affects the outcome */}return run;};
+ const finished=<T extends Record<string,any>>(run:T)=>{if(run?.status==='FINISHED'||run?.mcpResult?.status==='PENDING_APPROVAL')try{track?.(run);}catch{/* telemetry never affects the outcome */}return run;};
  // Policy check (MCP-03): the judge labels the request outside any transaction; the policy decides.
  const policyCheck=async(input:Parameters<McpClassifier>[0])=>{try{return await classify(input);}catch{return null;}};
  const dispatch=async(id:string,endpoint:string)=>{
@@ -73,7 +73,10 @@ export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive
  });
  app.post('/api/mcp/requests/:id/review',async(req,res)=>{
   admin(res);const input=z.object({allow:z.boolean(),scope:z.enum(['once','company']),expectedVersion:z.number().int().positive(),reason:z.string().trim().min(1).max(1000),ttlSeconds:z.number().finite().int().min(1).max(300).default(30)}).strict().parse(req.body);
-  res.json(await controlAs(res,service=>{const request=currentRequest(service,String(req.params.id));if(request.tenantId!==res.locals.principal.tenantId)throw Object.assign(new Error('Request access denied'),{status:403});if(input.allow&&service.store.get('run',request.runId)?.mcpResult?.classification?.searchRelated)throw conflict('Web search and browsing MCPs are blocked by policy MCP-03 and cannot be approved');return reviewRequest(service,request.id,input);}));
+  const reviewed=await controlAs(res,service=>{const request=currentRequest(service,String(req.params.id));if(request.tenantId!==res.locals.principal.tenantId)throw Object.assign(new Error('Request access denied'),{status:403});if(input.allow&&service.store.get('run',request.runId)?.mcpResult?.classification?.searchRelated)throw conflict('Web search and browsing MCPs are blocked by policy MCP-03 and cannot be approved');return reviewRequest(service,request.id,input);});
+  // Learn: InfoSec's decision goes back to Raindrop as feedback on that request's event.
+  try{signal?.(reviewed.runId,input.allow?'mcp_approved':'mcp_denied',input.allow?'POSITIVE':'NEGATIVE',{mcp:mcpKey(reviewed.name),scope:input.scope});}catch{/* telemetry never affects the decision */}
+  res.json(reviewed);
  });
  app.post('/api/mcp/requests/:id/resume',async(req,res)=>{
   z.object({}).strict().parse(req.body);
@@ -106,9 +109,9 @@ export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive
    runs.push(finished(await exclusive(async()=>{
     const record=await run(service=>{
      const policy=policySchema.parse(service.policy());const checked=mode==='governed'?classification:null;const governed=mcpConnectionDecision(policy,name,undefined,checked);const configured=governed.endpoint?{endpoint:governed.endpoint}:undefined;
-     const id=randomUUID(),session=service.session({tenantId:res.locals.principal.tenantId,role:res.locals.principal.role},res.locals.principal.userId,id);res.locals.principal.sessions.add(session.id);
+     const id=randomUUID(),session=service.session({tenantId:res.locals.principal.tenantId,role:res.locals.principal.role},res.locals.principal.userId,id,res.locals.principal.department);res.locals.principal.sessions.add(session.id);
      const blocked=mode==='governed'&&governed.verdict==='BLOCK';
-     const record={id,comparisonId,demoRunId:service.demo().demoRunId,sessionId:session.id,task,mode,scenario:'mcp',planner:'Explicit MCP connection request; no model-generated plan',plan:[],createdAt:service.clock(),status:blocked?'FINISHED':'WAITING',executionIds:[],mcpResult:{name,endpoint:configured?.endpoint??'',status:blocked?'BLOCKED':'CONFIGURATION_REQUIRED',tools:[],decision:{verdict:blocked?'BLOCK':'REQUIRE_APPROVAL',policyVersion:policy.version,ruleId:blocked?governed.ruleId:'MCP-01',reason:blocked?governed.reason:'This MCP is not configured in company policy.'},message:blocked?'No connection attempted.':'Supply the public HTTPS endpoint, then request approval or cancel. No connection has been attempted.',...(checked?{classification:checked}:{})}};
+     const record={id,comparisonId,demoRunId:service.demo().demoRunId,sessionId:session.id,task,mode,scenario:'mcp',department:res.locals.principal.department??null,planner:'Explicit MCP connection request; no model-generated plan',plan:[],createdAt:service.clock(),status:blocked?'FINISHED':'WAITING',executionIds:[],mcpResult:{name,endpoint:configured?.endpoint??'',status:blocked?'BLOCKED':'CONFIGURATION_REQUIRED',tools:[],decision:{verdict:blocked?'BLOCK':'REQUIRE_APPROVAL',policyVersion:policy.version,ruleId:blocked?governed.ruleId:'MCP-01',reason:blocked?governed.reason:'This MCP is not configured in company policy.'},message:blocked?'No connection attempted.':'Supply the public HTTPS endpoint, then request approval or cancel. No connection has been attempted.',...(checked?{classification:checked}:{})}};
      service.record('run',record);if(checked)service.emit('mcp.policy.checked',{runId:id,sessionId:session.id,searchRelated:checked.searchRelated,judge:checked.judge,ruleId:governed.ruleId});
      if(configured&&!blocked)return startIntent(service,record,configured.endpoint,mode==='baseline'?'Comparison: company MCP permission is not enforced.':'Reviewed company MCP policy permits this endpoint.');
      if(!blocked){const request=draftRequest(service,id,session.id,name,/https:\/\/|--add-mcp|\bmcp\s+add\b|mcpServers/i.test(task)?`Connect ${name} MCP.`:task,endpointFromPrompt(task));service.emit('mcp.decision.recorded',{runId:id,sessionId:session.id,decision:record.mcpResult.decision,requestId:request.id});const updated={...record,mcpResult:{...record.mcpResult,requestId:request.id}};service.record('run',updated);return updated;}

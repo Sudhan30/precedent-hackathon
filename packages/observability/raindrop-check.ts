@@ -25,3 +25,22 @@ export async function raindropCheck(runIds:string[],key=process.env.RAINDROP_QUE
   return {...base,status:'VERIFIED',message:`Verified in Raindrop: ${traced} of ${runIds.length} runs traced, 0 flagged.`};
  }catch{return {...empty,status:'UNAVAILABLE',message:'Raindrop could not be reached; the second check did not run.'};}
 }
+
+// Raindrop evidence for one MCP over the last 7 days: its request and connection events, the
+// negative signals matched on them (including InfoSec denials sent back as feedback) and
+// how many real connection attempts failed.
+const mcpEventsSchema=z.object({data:z.array(z.object({id:z.string(),properties:z.record(z.string(),z.unknown()).optional(),signals:z.array(z.object({id:z.string(),name:z.string()})).optional()}).loose())});
+export async function raindropMcpEvidence(mcp:string,key=process.env.RAINDROP_QUERY_API_KEY,fetcher:typeof fetch=fetch,now=Date.now()){
+ const empty={events:0,negativeSignals:[] as string[],connectionAttempts:0,connectionErrors:0};
+ if(!key)return {...empty,status:'NOT_CONFIGURED' as const};
+ const get=async(path:string)=>{const response=await fetcher('https://query.raindrop.ai'+path,{headers:{Authorization:'Bearer '+key,Accept:'application/json'},signal:AbortSignal.timeout(8000),redirect:'error'});if(!response.ok)throw new Error('HTTP '+response.status);return response.json();};
+ try{
+  const signals=signalsSchema.parse(await get('/v1/signals?limit=100')).data;
+  const negative=new Set(signals.filter(s=>s.sentiment==='NEGATIVE').map(s=>s.id));
+  const since=new Date(now-7*86400e3).toISOString();
+  const events=mcpEventsSchema.parse(await get(`/v1/events?limit=200&event_name=precedent.run&properties[mcp]=${encodeURIComponent(mcp)}&timestamp[gte]=${encodeURIComponent(since)}`)).data;
+  const flagged=events.flatMap(event=>(event.signals??[]).filter(s=>negative.has(s.id)||s.name==='mcp_denied').map(s=>s.name));
+  const outcomes=events.map(event=>String(event.properties?.outcome??''));
+  return {status:'OK' as const,events:events.length,negativeSignals:[...new Set(flagged)],connectionAttempts:outcomes.filter(o=>['CONNECTED','CONNECTION_FAILED'].includes(o)).length,connectionErrors:outcomes.filter(o=>o==='CONNECTION_FAILED').length};
+ }catch{return {...empty,status:'UNAVAILABLE' as const};}
+}

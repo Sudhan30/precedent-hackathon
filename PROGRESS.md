@@ -663,3 +663,22 @@ Implements `DEMO_PLAN.md` use case 2 and the runbook in `DEMO_RUNBOOK.md`. Use c
 - **Gate:** VERIFIED (or the check not configured) allows publishing. FLAGGED, PENDING or UNAVAILABLE returns 409 unless an administrator gives a reason. The check result and any override reason are stored on the proposal (`proposal.raindrop.checked`). Raindrop can hold a rule change, never approve one.
 - **New wiring:** MCP connection runs are now Raindrop events (one per finished run). `GET /api/proposals/:id/raindrop`. Mission Control shows Verified / Held / Pending / Unavailable with Check again and a reason box. Reset demo has a fourth readiness check that waits up to about 30 s for indexing.
 - **Live:** Reset demo printed "✓ Raindrop second check: Verified in Raindrop: 3 of 3 runs traced, 0 flagged." (policy v8, 57 s); Mission Control shows the same. Tests: 132 (123 pass, 9 skipped), evaluation 50/50, Playwright 16/16 (the browser-test server has the Raindrop read key blanked).
+
+## InfoSec evidence (MCP-04), priority, pending notice, lean UI (2026-10-11, ~21:30 UTC; committed, deploy after video recording)
+
+- **MCP Raindrop events:** MCP runs are tracked when pending and when finished, with properties `mcp`, `outcome`, `endpointHost`, `judge`, `department`. Demand records the departments that asked. MCP request sessions now carry the requester's department.
+- **MCP-04** (`packages/mcp/recommend.ts`): priority Normal / Raised / High at 1 / 2 / 3+ distinct requesters. Recommendation from Raindrop evidence (`raindropMcpEvidence`: last 7 days of events for that MCP, negative signals including `mcp_denied`, connection failure rate):
+  - approve company-wide when there are 3+ requesters and nothing negative
+  - one-time only when there is a negative signal or more than 5% failed connections
+  - review otherwise, or when Raindrop is unavailable (falls back to requester count)
+  The rule is advisory only. `GET /api/mcp/requests/:id/evidence` (admin).
+- **Learning:** an InfoSec approve or deny sends `mcp_approved` / `mcp_denied` (POSITIVE / NEGATIVE) to Raindrop `/v1/signals/track` on the request's event.
+- **UI:**
+  - Second requester sees "A request for X is already waiting for InfoSec (N people have asked). Add yours to raise its priority." with an "Add my request" button.
+  - Admin card shows an InfoSec priority badge and an evidence + MCP-04 recommendation panel.
+- **Lean UI:** the production build hides developer panels. They stay visible in the dev server or with `?dev`:
+  - "Policy & evidence" button and "Send the same prompt to both agents"
+  - Advanced governance (including the old "Start new demo" reset, which skipped reseeding)
+  - "Run details", "Inspect proposed plan", "Run this action again", and raw evidence IDs
+  Mission Control tabs now run Guardrails → Kill switch → Agent memory → Learned playbooks, defaulting to Guardrails.
+- **Checks:** 134 tests (125 pass, 9 skipped), Playwright 16/16.
