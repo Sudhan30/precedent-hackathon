@@ -4,6 +4,7 @@ import {createApp} from '../apps/server/api.js';
 import {Precedent} from '../apps/server/service.js';
 import {openStore} from '../apps/server/store.js';
 import {candidatePlaybooks,discoverPlaybooks,voyagePlaybookRanker,type Playbook} from '../packages/playbooks/index.js';
+import {atlasPlaybookIndex} from '../packages/playbooks/atlas-vector.js';
 
 // Test planner: follows a supplied playbook, otherwise tries the external analyzer
 // first. It reports provider-style usage so measured metrics can be checked.
@@ -126,4 +127,32 @@ test('a model-supplied target on a non-warehouse step never fails the run; a mal
   const wh=(await call('/comparison',{task:'Weekly active customers',scenario:'warehouse',planner:'eve',target:'governed'},token)).runs[0];
   assert.equal(wh.status,'FINISHED');assert.equal(store.get('execution',wh.executionIds[0]).decision.ruleId,'DATA-30');
  }finally{await new Promise<void>(resolve=>server.close(()=>resolve()));store.close();}
+});
+
+test('Atlas vector search retrieves scoped playbooks before Voyage rerank, backfilling missing vectors',async()=>{
+ const h=await harness();try{
+  await h.ask('Investigate why checkout is failing for customer Globex');const candidates=candidatePlaybooks(h.service,{tenantId:'acme-demo',role:'employee'});
+  const rows=new Map<string,any>();let search:any;
+  const collection={
+   aggregate:(pipeline:any[])=>({toArray:async()=>{search=pipeline[0].$vectorSearch;return [...rows.values()].filter(r=>r.indexed&&search.filter.playbookId.$in.includes(r.playbookId)).map(r=>({playbookId:r.playbookId}));}}),
+   find:(filter:any)=>({toArray:async()=>[...rows.values()].filter(r=>filter._id.$in.includes(r._id)).map(r=>({_id:r._id,at:r.at}))}),
+   updateOne:async(filter:any,update:any)=>{rows.set(filter._id,{_id:filter._id,...update.$set});},
+  };
+  const calls:string[]=[];const fetcher=(async(url:any,init:any)=>{const body=JSON.parse(init.body);calls.push(String(url).split('/').at(-1)+':'+(body.input_type??''));
+   if(String(url).endsWith('/embeddings'))return new Response(JSON.stringify({data:body.input.map((_:string,index:number)=>({index,embedding:Array(1024).fill(0.01)}))}));
+   return new Response(JSON.stringify({data:[{index:0,relevance_score:0.7}]}));}) as typeof fetch;
+  const index=atlasPlaybookIndex(collection,'test-key',fetcher)!;
+  const first=await discoverPlaybooks('Why are payments failing for Initech?',candidates,'acme-demo',index);
+  assert.deepEqual([first.engine,first.degraded,first.playbooks.map(p=>p.id)],['atlas-vector-search',false,[candidates[0].id]]);
+  assert.deepEqual(calls,['embeddings:query','embeddings:document','rerank:'],'unindexed procedure is backfilled and still reranked');
+  assert.deepEqual([search.filter.tenantId,search.filter.playbookId.$in],['acme-demo',candidates.map(p=>p.id)]);
+  assert.equal(rows.get(candidates[0].id).embedding.length,1024);
+  for(const row of rows.values()){row.indexed=true;row.at=0;}calls.length=0;
+  await discoverPlaybooks('Why are payments failing for Initech?',candidates,'acme-demo',index);
+  assert.deepEqual(calls,['embeddings:query','rerank:'],'indexed procedures come from Atlas vector search');
+  const broken={...collection,aggregate:()=>({toArray:async()=>{throw new Error('search unavailable');}})};
+  const fallback=await discoverPlaybooks('checkout failing',candidates,'acme-demo',[atlasPlaybookIndex(broken,'test-key',fetcher)!,voyagePlaybookRanker('test-key',fetcher)!]);
+  assert.deepEqual([fallback.engine,fallback.degraded],['voyage-rerank',true]);
+  assert.equal(atlasPlaybookIndex(collection,''),undefined);
+ }finally{await h.close();}
 });

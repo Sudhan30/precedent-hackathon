@@ -9,7 +9,7 @@ Four features, in this order. Prompts in `code` are typed exactly. All warehouse
 
    | Window | User | Team colour | Open on |
    |---|---|---|---|
-   | **W1** (projector) | `manager` | purple (admin) | Tab 1: User workspace · Tab 2: Mission Control |
+   | **W1** (projector) | `manager` (department: Engineering, already saved) | purple (admin) | Tab 1: User workspace · Tab 2: Mission Control |
    | **W2** | `engineer2` | blue (engineering) | User workspace |
    | **W3** | `sales` | amber (sales) | User workspace |
 
@@ -30,7 +30,7 @@ Four features, in this order. Prompts in `code` are typed exactly. All warehouse
 > "Company policy blocks this MCP. The agent never touched the network."
 
 ### 0:18 Feature 2: agent memory with a human checkpoint (hero)
-- W1, right chat: click **Query the data warehouse**, then send.
+- W1, right chat: click the **Query the data warehouse** chip above the message box, then send.
 - Result: **0 rows** and **No results found.**
 > "Real warehouses are undocumented. The agent guessed the obvious table, and it's a dead one."
 - In the form: **BigQuery table** `acme_dw.t_04417`, **Definitions** `Active means at least one order in the trailing 7 days.` → **Ask again with this table**.

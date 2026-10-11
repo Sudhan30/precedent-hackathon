@@ -49,7 +49,7 @@ export class TelemetryRuntime implements DomainRuntime{
  get mode(){return this.source.mode;}get writes(){return this.source.writes;}
  // Reads emit no events: they skip the export wrapper and the write queue, as without telemetry.
  get read(){const source=this.source;return source.read?<T>(fn:(service:Precedent)=>T|Promise<T>)=>source.read!(fn):undefined;}
- get searchEpisodes(){return this.source.searchEpisodes;}get searchPolicies(){return this.source.searchPolicies;}get notifications(){return this.source.notifications;}
+ get searchEpisodes(){return this.source.searchEpisodes;}get searchPolicies(){return this.source.searchPolicies;}get playbookIndex(){return this.source.playbookIndex;}get notifications(){return this.source.notifications;}
  async run<T>(fn:(service:Precedent)=>T|Promise<T>):Promise<T>{
   const job=this.tail.then(()=>this.source.run(async service=>{const before=new Set(service.store.all('event').map(event=>event.id));const value=await fn(service);return {value,events:service.store.all('event').filter(event=>!before.has(event.id))};}));
   this.tail=job.catch(()=>undefined);const committed=await job;

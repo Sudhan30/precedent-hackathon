@@ -27,9 +27,10 @@ export interface IdentityAdapter{resolve(req:express.Request):Promise<Authentica
 export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGateway,identity?:IdentityAdapter,telemetry?:BackendTelemetry,applicationMonitor?:ApplicationMonitor,mcpDiscover:()=>Promise<McpDiscovery>=discoverTenable,reviewedDiscover?:(endpoint:string)=>Promise<McpDiscovery>,plannerTransport?:PlannerTransport){
  const runtime=asRuntime(source);
  // Read-only views (display, lookups) use a consistent snapshot outside the write queue.
- const read=<T>(fn:(service:Precedent)=>T|Promise<T>)=>runtime.read?runtime.read(fn):runtime.run(fn);const playbookIndex=agentEngineIndex();
- // Playbooks are stored in Atlas; Agent Engine (optional) or Voyage rerank matches them to tasks.
- const playbookRanker=playbookIndex??voyagePlaybookRanker();const run=<T>(fn:(service:Precedent)=>T|Promise<T>)=>runtime.run(fn);
+ const read=<T>(fn:(service:Precedent)=>T|Promise<T>)=>runtime.read?runtime.read(fn):runtime.run(fn);const playbookIndex=agentEngineIndex()??runtime.playbookIndex;
+ // Playbooks are stored in Atlas; Agent Engine (optional) or Atlas vector search + Voyage rerank
+ // matches them to tasks, with plain Voyage rerank as the fallback.
+ const playbookRanker=[playbookIndex,voyagePlaybookRanker()].filter((index):index is NonNullable<typeof index>=>Boolean(index));const run=<T>(fn:(service:Precedent)=>T|Promise<T>)=>runtime.run(fn);
  const control=<T>(fn:(service:Precedent)=>T|Promise<T>)=>gateway?gateway.control(fn):run(fn);
  // Every open tab reloads state after each event. Concurrent and repeated reloads share one
  // snapshot read until this server commits another write (5 s safety limit for outside writers).

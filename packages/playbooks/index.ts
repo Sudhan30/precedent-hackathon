@@ -10,11 +10,11 @@ export interface Playbook{
  id:string;demoRunId:string;tenantId:string;visibleRoles:string[];title:string;taskSummary:string;
  steps:PlaybookStep[];avoid:PlaybookAvoid[];policyVersion:number;sourceRunId:string;evidenceIds:string[];
  status:'VALID'|'NEEDS_REVALIDATION';invalidatedByVersion?:number;invalidationReason?:string;
- index:{engine:'atlas-agent-engine'|'precedent-local';status:'PENDING'|'INDEXED'|'LOCAL_ONLY'|'INDEX_FAILED'};at:number;
+ index:{engine:'atlas-agent-engine'|'atlas-vector-search'|'precedent-local';status:'PENDING'|'INDEXED'|'LOCAL_ONLY'|'INDEX_FAILED'};at:number;
 }
 // Semantic index for playbooks. Precedent's store stays authoritative; an index
 // only ranks candidate ids, which are rechecked against scope and status.
-export interface PlaybookIndex{engine:'atlas-agent-engine'|'voyage-rerank';save?(playbook:Playbook):Promise<void>;discover(task:string,tenantId:string,topK:number,candidates:Playbook[]):Promise<string[]>}
+export interface PlaybookIndex{engine:'atlas-agent-engine'|'atlas-vector-search'|'voyage-rerank';save?(playbook:Playbook):Promise<void>;discover(task:string,tenantId:string,topK:number,candidates:Playbook[]):Promise<string[]>}
 // Voyage reranking over the authoritative candidates stored in Atlas. Only procedures
 // whose relevance clears the threshold are suggested; failures fall back to local ranking.
 // Shared Voyage rerank call: returns candidate indexes whose relevance clears the threshold.
@@ -69,13 +69,16 @@ export function rankLocally(task:string,candidates:Playbook[],topK:number){
  return candidates.map(p=>{const doc=words(p.title+' '+p.taskSummary+' '+p.steps.map(s=>s.toolId.replace(/[._]/g,' ')).join(' '));let overlap=0;for(const word of query)if(doc.has(word))overlap++;return {p,score:overlap/Math.max(1,query.size)};})
   .filter(item=>item.score>=0.2).sort((a,b)=>b.score-a.score).slice(0,topK).map(item=>item.p);
 }
-export async function discoverPlaybooks(task:string,candidates:Playbook[],tenantId:string,index?:PlaybookIndex,topK=2):Promise<{playbooks:Playbook[];engine:string;degraded:boolean}>{
- if(!candidates.length)return {playbooks:[],engine:index?.engine??'precedent-local',degraded:false};
- if(index){
-  try{const byId=new Map(candidates.map(p=>[p.id,p]));const ids=await index.discover(task,tenantId,topK*3,candidates);const found=ids.map(id=>byId.get(id)).filter((p):p is Playbook=>Boolean(p)).slice(0,topK);return {playbooks:found,engine:index.engine,degraded:false};}
-  catch{return {playbooks:rankLocally(task,candidates,topK),engine:'precedent-local',degraded:true};}
+// Indexes are tried in order; a failed one falls through to the next, then to local ranking.
+export async function discoverPlaybooks(task:string,candidates:Playbook[],tenantId:string,index?:PlaybookIndex|PlaybookIndex[],topK=2):Promise<{playbooks:Playbook[];engine:string;degraded:boolean}>{
+ const indexes=[index??[]].flat();
+ if(!candidates.length)return {playbooks:[],engine:indexes[0]?.engine??'precedent-local',degraded:false};
+ const byId=new Map(candidates.map(p=>[p.id,p]));
+ for(const [position,current] of indexes.entries()){
+  try{const ids=await current.discover(task,tenantId,topK*3,candidates);const found=ids.map(id=>byId.get(id)).filter((p):p is Playbook=>Boolean(p)).slice(0,topK);return {playbooks:found,engine:current.engine,degraded:position>0};}
+  catch{}
  }
- return {playbooks:rankLocally(task,candidates,topK),engine:'precedent-local',degraded:false};
+ return {playbooks:rankLocally(task,candidates,topK),engine:'precedent-local',degraded:indexes.length>0};
 }
 // Playbooks are advice proven under one policy version. When policy changes,
 // any step whose decision would now differ marks the playbook for re-validation.

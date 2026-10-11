@@ -354,3 +354,8 @@ main.login-page{background:radial-gradient(900px 500px at 15% 10%,rgba(var(--sig
  .workspace-page .conversation.panel>*{flex:none}
  .workspace-page .conversation.panel>.conversation-content{flex:1 1 0;min-height:0;height:auto}
 }
+/* Suggested prompts after a chat has started: one compact row above the composer. */
+.conversation .starter-chips{display:flex;flex-wrap:wrap;gap:6px;padding:8px 18px 0}
+.conversation .starter-chips button{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;font-size:11px;font-weight:550;border-radius:999px;background:#fff;border:1px solid var(--chat-line);color:var(--ink-800)}
+.conversation .starter-chips button .icon{width:13px;height:13px;color:var(--chat-muted)}
+.conversation .starter-chips button:hover:not(:disabled){border-color:#c9c6bb}

@@ -6,11 +6,13 @@ import {Precedent} from './service.js';
 import {PolicyWatch} from './policy-watch.js';
 import {atlasEpisodeSearch,atlasPolicySearch,episodeProjection,lexicalIndex,vectorIndex,policyLexicalIndex,policyVectorIndex,type EpisodeSearch,type PolicySearch} from '../../packages/retrieval/atlas.js';
 import type {Store} from './store.js';
+import {atlasPlaybookIndex,playbookVectorCollection,playbookVectorIndex} from '../../packages/playbooks/atlas-vector.js';
+import type {PlaybookIndex} from '../../packages/playbooks/index.js';
 // read(): a consistent, read-only view for display and lookups. It never queues behind
 // writes and never authorizes anything; authoritative decisions stay inside run().
 // writes counts finished write transactions, so read-only views can tell whether a cached snapshot
 // is current. Only runtimes whose every write passes through run() may expose it.
-export interface DomainRuntime{run<T>(fn:(service:Precedent)=>T|Promise<T>):Promise<T>;writes?:number;read?<T>(fn:(service:Precedent)=>T|Promise<T>):Promise<T>;mode:string;readEvents?(cursor:number):Promise<Record<string,any>[]>;searchEpisodes?:EpisodeSearch;searchPolicies?:PolicySearch;notifications?:{state:string;observedVersion:number;resumed:boolean;reconnects:number};close():Promise<void>;}
+export interface DomainRuntime{run<T>(fn:(service:Precedent)=>T|Promise<T>):Promise<T>;writes?:number;read?<T>(fn:(service:Precedent)=>T|Promise<T>):Promise<T>;mode:string;readEvents?(cursor:number):Promise<Record<string,any>[]>;searchEpisodes?:EpisodeSearch;searchPolicies?:PolicySearch;playbookIndex?:PlaybookIndex;notifications?:{state:string;observedVersion:number;resumed:boolean;reconnects:number};close():Promise<void>;}
 export class LocalRuntime implements DomainRuntime{
  mode='SQLite';constructor(readonly service:Precedent){}
  async run<T>(fn:(service:Precedent)=>T|Promise<T>){return fn(this.service);}
@@ -44,8 +46,13 @@ export function memoryStore(initial:Map<string,Map<string,any>>){
  };return {store,changes,data:()=>data};
 }
 export class MongoRuntime implements DomainRuntime{
- async provisionSearchIndexes(){const results=[];const policyIndexes=atlasSearchLayout()==='full'?[policyLexicalIndex,policyVectorIndex]:[policyVectorIndex];for(const [kind,indexes] of [['episode',[lexicalIndex,vectorIndex]],['policy_rule',policyIndexes]] as const){const collection=this.collections[kind].rawCollection();const existing=await collection.listSearchIndexes().toArray();const missing=indexes.filter(index=>!existing.some(e=>e.name===index.name));if(missing.length)await collection.createSearchIndexes([...missing]);results.push({collection:collection.collectionName,indexes:z.array(z.object({name:z.string(),status:z.string().optional(),queryable:z.boolean().optional()})).parse(await collection.listSearchIndexes().toArray())});}return results;}
+ async provisionSearchIndexes(){const results=[];const policyIndexes=atlasSearchLayout()==='full'?[policyLexicalIndex,policyVectorIndex]:[policyVectorIndex];for(const [kind,indexes] of [['episode',[lexicalIndex,vectorIndex]],['policy_rule',policyIndexes]] as const){const collection=this.collections[kind].rawCollection();const existing=await collection.listSearchIndexes().toArray();const missing=indexes.filter(index=>!existing.some(e=>e.name===index.name));if(missing.length)await collection.createSearchIndexes([...missing]);results.push({collection:collection.collectionName,indexes:z.array(z.object({name:z.string(),status:z.string().optional(),queryable:z.boolean().optional()})).parse(await collection.listSearchIndexes().toArray())});}
+  // Playbook vectors: a plain collection (created if absent) with one vector index.
+  const db=this.client.db();if(!(await db.listCollections({name:playbookVectorCollection}).toArray()).length)await db.createCollection(playbookVectorCollection);
+  const vectors=db.collection(playbookVectorCollection);if(!(await vectors.listSearchIndexes().toArray()).some(e=>e.name===playbookVectorIndex.name))await vectors.createSearchIndexes([playbookVectorIndex]);
+  results.push({collection:playbookVectorCollection,indexes:z.array(z.object({name:z.string(),status:z.string().optional(),queryable:z.boolean().optional()})).parse(await vectors.listSearchIndexes().toArray())});return results;}
  get searchPolicies(){return process.env.ATLAS_SEARCH_ENABLED==='true'?atlasPolicySearch(this.collections.policy_rule.rawCollection(),{lexical:atlasSearchLayout()==='full'}):undefined;}
+ get playbookIndex(){return process.env.ATLAS_SEARCH_ENABLED==='true'?atlasPlaybookIndex(this.client.db().collection(playbookVectorCollection)):undefined;}
  get searchEpisodes(){return process.env.ATLAS_SEARCH_ENABLED==='true'?atlasEpisodeSearch(this.collections.episode.rawCollection()):undefined;}
  async readEvents(cursor:number){
   // Read only committed audit events. This observer cannot authorize actions
