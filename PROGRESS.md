@@ -656,3 +656,10 @@ Implements `DEMO_PLAN.md` use case 2 and the runbook in `DEMO_RUNBOOK.md`. Use c
 - **Cause, verified live:** `/v1/events/track` returns 200 but silently drops any event whose `ai_data.tool_calls` item has a `status` other than `"error"`. We sent `status:"SUCCEEDED"`/`"BLOCKED"`.
 - **Fix:** the outcome and verdict go in `result` (e.g. "BLOCKED · BLOCK DATA-18"); `status:"error"` is sent only for UNKNOWN or FAILED executions. Non-OK export responses are now logged. A test asserts no other status is sent.
 - **Live:** a governed warehouse run with a tool call is now stored in Raindrop. 130 tests (121 pass, 9 skipped).
+
+## Raindrop second check on self-writing guardrails (2026-10-11, ~21:05 UTC)
+
+- **What it does:** MongoDB evidence still triggers a draft rule. Before publishing, Precedent asks Raindrop's Query API about the exact runs behind it: was each one recorded, and did Raindrop flag any with a NEGATIVE signal (Attempted Prompt Injection, Un-Retried Tool Call Failures, Capability Gaps, User Frustration, Human Handoff Request)? Lookups use `/v1/events?convo_id=<runId>`, with signal sentiment from `/v1/signals`.
+- **Gate:** VERIFIED (or the check not configured) allows publishing. FLAGGED, PENDING or UNAVAILABLE returns 409 unless an administrator gives a reason. The check result and any override reason are stored on the proposal (`proposal.raindrop.checked`). Raindrop can hold a rule change, never approve one.
+- **New wiring:** MCP connection runs are now Raindrop events (one per finished run). `GET /api/proposals/:id/raindrop`. Mission Control shows Verified / Held / Pending / Unavailable with Check again and a reason box. Reset demo has a fourth readiness check that waits up to about 30 s for indexing.
+- **Live:** Reset demo printed "✓ Raindrop second check: Verified in Raindrop: 3 of 3 runs traced, 0 flagged." (policy v8, 57 s); Mission Control shows the same. Tests: 132 (123 pass, 9 skipped), evaluation 50/50, Playwright 16/16 (the browser-test server has the Raindrop read key blanked).

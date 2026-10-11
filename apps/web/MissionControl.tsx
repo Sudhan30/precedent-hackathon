@@ -109,11 +109,15 @@ function GuardrailsTab({state,api,canAdmin,busy,act}:{state:Row|null;api:Api;can
  const draft=proposals.find((p:Row)=>p.status==='DRAFT'&&p.baseVersion===state?.policy.version);const published=proposals.find((p:Row)=>p.status==='PUBLISHED');
  const {data:impact,error}=useEvidence(draft?'proposals/'+draft.id+'/impact':null,String(state?.policy.version)+':'+(state?.events?.length??0),api,canAdmin);
  const changed=useCountUp(impact?.changedCount??0);
+ // Raindrop second check on the runs behind this draft; "Check again" re-asks Raindrop.
+ const [recheck,setRecheck]=useState(0),[override,setOverride]=useState('');
+ const {data:raindrop,error:raindropError}=useEvidence(draft?'proposals/'+draft.id+'/raindrop':null,String(state?.policy.version)+':'+recheck,api,canAdmin);
+ const verified=raindrop?.status==='VERIFIED'||raindrop?.status==='NOT_CONFIGURED';
  const progress=Object.entries(((state?.mcpRequests??[]) as Row[]).filter(r=>r.scope==='once'&&r.status==='CONSUMED').reduce((groups:Record<string,number>,r)=>({...groups,[r.name]:(groups[r.name]??0)+1}),{}));
  if(!draft)return <div className="mc-grid">
   <div className="mc-empty"><h3>No draft rule right now</h3><p>When an administrator approves the same MCP connection one request at a time, again and again, Precedent notices. After 3 successful approvals it drafts a narrow company rule here for one-click review.</p>
    {progress.length>0&&<ul className="mc-progress">{progress.map(([name,count])=><li key={name}><span>{name}</span><meter min={0} max={3} value={Math.min(3,count as number)}/><small>{Math.min(3,count as number)} of 3 approvals</small></li>)}</ul>}</div>
-  {published&&<article className="mc-card"><span className="mc-badge ok">Published · policy v{published.publishedVersion}</span><h3>Precedent rewrote its own guardrail</h3><p>{ruleText(published.scope)}</p><p className="mc-muted">The next matching request goes straight through. Everything outside this exact scope still needs review.</p></article>}
+  {published&&<article className="mc-card"><span className="mc-badge ok">Published · policy v{published.publishedVersion}</span><h3>Precedent rewrote its own guardrail</h3><p>{ruleText(published.scope)}</p>{published.raindropCheck&&<p className="mc-muted">{published.raindropCheck.message}{published.publishOverride?` Published with reason: ${published.publishOverride}`:''}</p>}<p className="mc-muted">The next matching request goes straight through. Everything outside this exact scope still needs review.</p></article>}
  </div>;
  return <div className="mc-grid">
   <article className="mc-card mc-draft">
@@ -121,7 +125,13 @@ function GuardrailsTab({state,api,canAdmin,busy,act}:{state:Row|null;api:Api;can
    <h3>Suggested rule</h3><p className="mc-rule">{ruleText(draft.scope)}</p>
    <p>{draft.description}</p>
    <small className="mc-muted">Evidence: {draft.count} recorded approvals · {draft.evidenceIds.map((id:string)=>id.slice(0,8)).join(', ')}</small>
-   <div className="mc-actions"><button disabled={busy||!canAdmin||!impact} onClick={()=>void act(()=>api('proposals/'+draft.id+'/publish',{expectedVersion:state!.policy.version},true))}>Publish rule</button><span className="mc-muted">Creates policy v{(state?.policy.version??0)+1}. Takes effect for every agent immediately.</span></div>
+   <div className={'mc-raindrop '+(raindrop?.status??'loading').toLowerCase()} role="status">
+    <strong>{!raindrop&&!raindropError?'Checking Raindrop…':raindropError?'Raindrop check failed':raindrop?.status==='VERIFIED'?'✓ Verified in Raindrop':raindrop?.status==='FLAGGED'?'⚠ Held by Raindrop':raindrop?.status==='PENDING'?'… Raindrop check pending':raindrop?.status==='NOT_CONFIGURED'?'Raindrop second check off':'Raindrop unavailable'}</strong>
+    <span>{raindropError||raindrop?.message||'Asking Raindrop how it recorded and judged the runs behind this rule.'}</span>
+    {raindrop&&raindrop.status!=='VERIFIED'&&<button type="button" className="secondary" onClick={()=>setRecheck(value=>value+1)}>Check again</button>}
+   </div>
+   {raindrop&&!verified&&<label className="mc-override">Reason to publish without Raindrop verification<textarea rows={2} maxLength={500} value={override} onChange={event=>setOverride(event.target.value)} placeholder="e.g. Reviewed the flagged run; the flag is unrelated to this MCP."/></label>}
+   <div className="mc-actions"><button disabled={busy||!canAdmin||!impact||!raindrop||(!verified&&override.trim().length<3)} onClick={()=>void act(()=>api('proposals/'+draft.id+'/publish',{expectedVersion:state!.policy.version,...(verified?{}:{override:override.trim()})},true))}>{verified?'Publish rule':'Publish with reason'}</button><span className="mc-muted">Creates policy v{(state?.policy.version??0)+1}. Takes effect for every agent immediately.</span></div>
   </article>
   <article className="mc-card">
    <h3>Before you publish: impact on recorded history</h3>

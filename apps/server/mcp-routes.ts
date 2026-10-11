@@ -11,9 +11,11 @@ import {currentRequest,draftRequest,reviewRequest,submitRequest,updateRequest} f
 import {endpointFromPrompt,endpointSchema,mcpKey,mcpNameSchema,nameFromPrompt} from '../../packages/mcp/contracts.js';
 
 type Run=<T>(fn:(service:Precedent)=>T|Promise<T>)=>Promise<T>;
-interface Dependencies{run:Run;controlAs:<T>(res:express.Response,fn:(service:Precedent)=>T|Promise<T>)=>Promise<T>;exclusive:<T>(fn:()=>Promise<T>)=>Promise<T>;admin:(res:express.Response)=>void;owned:(res:express.Response,id:string)=>void;discover?:(endpoint:string)=>Promise<McpDiscovery>;classify?:McpClassifier;}
+interface Dependencies{run:Run;controlAs:<T>(res:express.Response,fn:(service:Precedent)=>T|Promise<T>)=>Promise<T>;exclusive:<T>(fn:()=>Promise<T>)=>Promise<T>;admin:(res:express.Response)=>void;owned:(res:express.Response,id:string)=>void;discover?:(endpoint:string)=>Promise<McpDiscovery>;classify?:McpClassifier;track?:(run:Record<string,any>)=>void;}
 const conflict=(message:string)=>Object.assign(new Error(message),{status:409});
-export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive,admin,owned,discover=discoverReviewedMcp,classify=claudeClassifier()}:Dependencies){
+export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive,admin,owned,discover=discoverReviewedMcp,classify=claudeClassifier(),track}:Dependencies){
+ // Each MCP run that reaches an outcome becomes one Raindrop event (keyed by its run id).
+ const finished=<T extends Record<string,any>>(run:T)=>{if(run?.status==='FINISHED')try{track?.(run);}catch{/* telemetry never affects the outcome */}return run;};
  // Policy check (MCP-03): the judge labels the request outside any transaction; the policy decides.
  const policyCheck=async(input:Parameters<McpClassifier>[0])=>{try{return await classify(input);}catch{return null;}};
  const dispatch=async(id:string,endpoint:string)=>{
@@ -27,7 +29,7 @@ export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive
   }).then(async result=>{
    // Self-writing guardrails: repeated approved connections may now support a draft rule.
    if(result.mode==='governed'&&result.mcpResult.status==='CONNECTED')await run(service=>service.store.atomic(()=>analyzeMcpProposals(service))).catch(()=>undefined);
-   return result;
+   return finished(result);
   });
  };
  const startIntent=(service:Precedent,record:Record<string,any>,endpoint:string,reason:string)=>{
@@ -59,7 +61,7 @@ export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive
     submitRequest(service,request.id,input);return service.store.get('run',request.runId)!;
    });
    return intent.status==='EXECUTING'?dispatch(intent.id,input.endpoint):intent;
-  });res.json(result);
+  });res.json(finished(result));
  });
  app.post('/api/mcp/requests/:id/cancel',async(req,res)=>{
   z.object({}).strict().parse(req.body);
@@ -101,7 +103,7 @@ export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive
   const alreadyBlocked=await run(service=>mcpConnectionDecision(policySchema.parse(service.policy()),name).verdict==='BLOCK');
   const classification:McpClassification|null=target!=='baseline'&&!alreadyBlocked?await policyCheck({prompt:task,name}):null;
   for(const mode of (target==='both'?['baseline','governed']:[target]) as ('baseline'|'governed')[]){
-   runs.push(await exclusive(async()=>{
+   runs.push(finished(await exclusive(async()=>{
     const record=await run(service=>{
      const policy=policySchema.parse(service.policy());const checked=mode==='governed'?classification:null;const governed=mcpConnectionDecision(policy,name,undefined,checked);const configured=governed.endpoint?{endpoint:governed.endpoint}:undefined;
      const id=randomUUID(),session=service.session({tenantId:res.locals.principal.tenantId,role:res.locals.principal.role},res.locals.principal.userId,id);res.locals.principal.sessions.add(session.id);
@@ -112,7 +114,7 @@ export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive
      if(!blocked){const request=draftRequest(service,id,session.id,name,/https:\/\/|--add-mcp|\bmcp\s+add\b|mcpServers/i.test(task)?`Connect ${name} MCP.`:task,endpointFromPrompt(task));service.emit('mcp.decision.recorded',{runId:id,sessionId:session.id,decision:record.mcpResult.decision,requestId:request.id});const updated={...record,mcpResult:{...record.mcpResult,requestId:request.id}};service.record('run',updated);return updated;}
      service.emit('mcp.decision.recorded',{runId:id,sessionId:session.id,decision:record.mcpResult.decision});return record;
     });return record.status==='EXECUTING'?dispatch(record.id,record.mcpResult.endpoint):record;
-   }));
+   })));
   }return {comparisonId,runs};
  };
 }

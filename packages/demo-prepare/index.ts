@@ -33,9 +33,13 @@ export async function prepareDemo(request:DemoRequest,options:PrepareOptions):Pr
  const draft=(state.policyProposals??[]).find((p:Record<string,any>)=>p.status==='DRAFT'&&p.scope?.kind==='mcp'&&p.baseVersion===state.policy.version);
  const impact=draft?await request('proposals/'+draft.id+'/impact'):null;
  const blast=await request('incidents/preview?toolId=example_connector.analyze');
+ // Raindrop second check on the draft: give Raindrop a few seconds to index the approval runs.
+ let raindrop:any=null;
+ if(draft){step('Raindrop second check on the draft rule');for(let attempt=0;attempt<8;attempt++){raindrop=await request('proposals/'+draft.id+'/raindrop');if(!['PENDING','UNAVAILABLE'].includes(raindrop.status))break;await new Promise(resolve=>setTimeout(resolve,4000));}}
  const checks=[
   [Boolean(playbook),'Playbook saved',playbook?`${playbook.steps.length} step(s), ${playbook.avoid.length} to avoid · Agent A: ${agentA.status} · index ${playbook.index?.engine}/${playbook.index?.status}`:`Agent A ${agentA.status}; no successful steps to learn from`],
   [Boolean(draft),'Self-written draft ready',draft?`${draft.count} approvals · ${impact.changedCount} of ${impact.total} past decisions would change · safety checks ${impact.safetyChecks.filter((c:any)=>c.pass).length}/${impact.safetyChecks.length}`:'no draft for the current policy version'],
+  [Boolean(raindrop)&&['VERIFIED','NOT_CONFIGURED'].includes(raindrop.status),'Raindrop second check',raindrop?raindrop.message:'no draft to check'],
   [blast.summary.exposedCalls+blast.summary.baselineCalls+blast.summary.blockedAttempts>0,'LogLens usage recorded',`${blast.summary.exposedCalls} exposed · ${blast.summary.blockedAttempts} blocked · ${blast.summary.baselineCalls} baseline · ${blast.receipts.count} connector receipts`]
  ] as const;
  return {version:state.policy.version,checks:checks.map(([ok,name,detail])=>({ok,name,detail}))};

@@ -20,7 +20,7 @@ test('an administrator resets the demo from the UI: fresh namespace, then the sa
   let job=started.data;for(let i=0;i<200&&job.status==='RUNNING';i++){await new Promise(resolve=>setTimeout(resolve,50));job=(await call('demo/prepare',admin)).data;}
   assert.equal(job.status,'DONE',job.error);
   assert.notEqual(service.demo().demoRunId,before,'a new demo namespace');
-  assert.deepEqual(job.checks.map((c:any)=>c.ok),[true,true,true],JSON.stringify(job.checks));
+  assert.ok(job.checks.length>=4&&job.checks.every((c:any)=>c.ok),JSON.stringify(job.checks));assert.ok(job.checks.some((c:any)=>c.name==='Raindrop second check'));
   assert.match(job.steps[0],/fresh demo namespace/);assert.ok(job.steps.some((s:string)=>/approval 3 of 3/.test(s)));
  }finally{await new Promise<void>(resolve=>server.close(()=>resolve()));store.close();if(previous===undefined)delete process.env.ALLOW_FIXTURE_PLANNER;else process.env.ALLOW_FIXTURE_PLANNER=previous;}
 });

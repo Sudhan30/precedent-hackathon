@@ -4,7 +4,7 @@ Four features, in this order. Prompts in `code` are typed exactly. All warehouse
 
 ## Before you go on stage (10 minutes before)
 
-1. Signed in as `manager`: **Mission Control → Reset demo** (top right of the banner), confirm, and wait for **Clean demo ready** with three `✓` lines (about 30 s), then click **Start from the beginning**. Reload the other windows. (Same steps on the host: `npm run demo:prepare -- --reset`.) This must be the **last** change before the demo: it clears agent memory, the published guardrail, quarantines and any tool-access changes.
+1. Signed in as `manager`: **Mission Control → Reset demo** (top right of the banner), confirm, and wait for **Clean demo ready** with four `✓` lines (including **Raindrop second check**) (about 30 s), then click **Start from the beginning**. Reload the other windows. (Same steps on the host: `npm run demo:prepare -- --reset`.) This must be the **last** change before the demo: it clears agent memory, the published guardrail, quarantines and any tool-access changes.
 2. Open three browser windows (separate profiles or private windows) at https://precedent.vikhas.com:
 
    | Window | User | Team colour | Open on |
@@ -47,6 +47,8 @@ Four features, in this order. Prompts in `code` are typed exactly. All warehouse
 ### 1:25 Feature 3: self-writing guardrails
 - W1 → **Mission Control** (button in the focus strip) → **Self-writing guardrails**.
 > "Admins approved Docs Preview MCP three times. Precedent drafted a narrow rule and replayed history first: N of M past decisions change, and everything sensitive stays protected."
+- Point at **✓ Verified in Raindrop: 3 of 3 runs traced, 0 flagged**.
+> "And before any rule change ships, Raindrop independently checks the runs behind it. If Raindrop had flagged one, this rule would be held."
 - Click **Publish rule** → "**Precedent rewrote its own guardrail**."
 
 ### 1:45 Feature 4: kill switch with blast radius

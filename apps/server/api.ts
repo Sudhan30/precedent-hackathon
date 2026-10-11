@@ -13,6 +13,7 @@ import {impactPreview} from '../../packages/proposals/impact.js';
 import {candidatePlaybooks,discoverPlaybooks,distillPlaybook,playbookComparison,playbookContext,voyagePlaybookRanker,type Playbook} from '../../packages/playbooks/index.js';
 import {agentEngineIndex} from '../../packages/playbooks/agent-engine.js';
 import type {McpClassifier} from '../../packages/mcp/classify.js';
+import {raindropCheck,type RaindropCheck} from '../../packages/observability/raindrop-check.js';
 import {prepareDemo,type DemoCheck,type DemoRequest} from '../../packages/demo-prepare/index.js';
 import {blastRadius} from '../../packages/incidents/index.js';
 import {approveCandidate,departmentKnowledge,knowledgeComparison,knowledgeContext,proposeFromRun,rankKnowledge,rejectCandidate} from '../../packages/knowledge/index.js';
@@ -26,7 +27,7 @@ import {discoverTenable,mcpDecision,tenableEndpoint,type McpDiscovery} from '../
 const actionInput=actionInputSchema;
 export interface AuthenticatedPrincipal{userId:string;role:'employee'|'admin';tenantId:string;department?:Department;}
 export interface IdentityAdapter{resolve(req:express.Request):Promise<AuthenticatedPrincipal|null>;}
-export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGateway,identity?:IdentityAdapter,telemetry?:BackendTelemetry,applicationMonitor?:ApplicationMonitor,mcpDiscover:()=>Promise<McpDiscovery>=discoverTenable,reviewedDiscover?:(endpoint:string)=>Promise<McpDiscovery>,plannerTransport?:PlannerTransport,mcpClassifier?:McpClassifier){
+export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGateway,identity?:IdentityAdapter,telemetry?:BackendTelemetry,applicationMonitor?:ApplicationMonitor,mcpDiscover:()=>Promise<McpDiscovery>=discoverTenable,reviewedDiscover?:(endpoint:string)=>Promise<McpDiscovery>,plannerTransport?:PlannerTransport,mcpClassifier?:McpClassifier,checkRaindrop:(runIds:string[])=>Promise<RaindropCheck>=runIds=>raindropCheck(runIds)){
  const runtime=asRuntime(source);
  // Read-only views (display, lookups) use a consistent snapshot outside the write queue.
  const read=<T>(fn:(service:Precedent)=>T|Promise<T>)=>runtime.read?runtime.read(fn):runtime.run(fn);const playbookIndex=agentEngineIndex()??runtime.playbookIndex;
@@ -118,7 +119,8 @@ export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGatew
   admin(res);const input=z.object({expectedVersion:z.number().int().positive(),tenableAllowed:z.boolean(),deniedTools:z.array(z.enum(toolIds)),reason:z.string().trim().min(1).max(1000)}).strict().parse(req.body);
   res.json(await controlAs(res,s=>{if(s.policy().version!==input.expectedVersion)throw Object.assign(new Error('Policy changed; refresh before publishing'),{status:409});return s.publish({...s.policy(),tenableAllowed:input.tenableAllowed,deniedTools:[...new Set(input.deniedTools)]},false,input.reason);}));
  });
- const unknownMcp=registerMcpRequests(app,{run,controlAs,admin,owned,exclusive:fn=>gateway?gateway.exclusive(fn):fn(),discover:reviewedDiscover,...(mcpClassifier?{classify:mcpClassifier}:{})});
+ const unknownMcp=registerMcpRequests(app,{run,controlAs,admin,owned,exclusive:fn=>gateway?gateway.exclusive(fn):fn(),discover:reviewedDiscover,...(mcpClassifier?{classify:mcpClassifier}:{}),
+  track:run=>telemetry?.trackRun({runId:run.id,mode:run.mode,scenario:'mcp',status:run.status,executions:[{action:{toolId:'mcp.connect'},status:run.mcpResult?.status??'UNKNOWN',decision:run.mcpResult?.decision}]})});
  app.post('/api/mcp/comparison',async(req,res)=>{
   const {task,target}=z.object({task:z.string().trim().min(1).max(2000).refine(task=>isMcpConnectionPrompt(task)||(/\btenable\b/i.test(task)&&/\b(connect|add|install|download)\b/i.test(task)),'Explicitly request connecting an MCP'),target:z.enum(['both','baseline','governed']).default('both')}).strict().parse(req.body);
   if(!(/^tenable(?: |$)/i.test(nameFromPrompt(task))||(!/\bmcp\b/i.test(task)&&/\btenable\b/i.test(task)))){res.json(await unknownMcp(res,task,target));return;}
@@ -172,7 +174,16 @@ export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGatew
  }catch{/* Playbook learning is advisory; it never changes the completed run. */}};
  app.get('/api/playbooks/:id/comparison',async(req,res)=>{admin(res);res.json(await read(s=>playbookComparison(s,String(req.params.id))));});
  app.get('/api/proposals/:id/impact',async(req,res)=>{admin(res);res.json(await read(s=>impactPreview(s,String(req.params.id))));});
- app.post('/api/proposals/:id/publish',async(req,res)=>{admin(res);const {expectedVersion}=z.object({expectedVersion:z.number().int().positive()}).strict().parse(req.body);res.json(await controlAs(res,s=>s.publishProposal(String(req.params.id),expectedVersion)));});
+ // Raindrop second check: the runs behind a draft rule, as Raindrop recorded and judged them.
+ const proposalRuns=(service:Precedent,id:string)=>{const proposal=service.store.get('proposal',id);if(!proposal)throw Object.assign(new Error('Unknown proposal'),{status:404});
+  return [...new Set((proposal.evidenceIds as string[]).map(evidence=>service.store.get('mcp_request',evidence)?.runId??service.store.get('execution',evidence)?.runId).filter((runId):runId is string=>typeof runId==='string'))];};
+ app.get('/api/proposals/:id/raindrop',async(req,res)=>{admin(res);res.json(await checkRaindrop(await read(s=>proposalRuns(s,String(req.params.id)))));});
+ app.post('/api/proposals/:id/publish',async(req,res)=>{admin(res);const {expectedVersion,override}=z.object({expectedVersion:z.number().int().positive(),override:z.string().trim().min(3,'Give a short reason for publishing without a Raindrop verification.').max(500).optional()}).strict().parse(req.body);
+  const id=String(req.params.id);const check=await checkRaindrop(await read(s=>proposalRuns(s,id)));
+  // Raindrop can hold a rule change, never approve one: anything but VERIFIED needs a written reason.
+  if(check.status!=='VERIFIED'&&check.status!=='NOT_CONFIGURED'&&!override)throw Object.assign(new Error(`Raindrop second check: ${check.message} Give a reason to publish anyway.`),{status:409});
+  res.json(await controlAs(res,s=>{const published=s.publishProposal(id,expectedVersion);const proposal=s.store.get('proposal',id);
+   s.record('proposal',{...proposal,raindropCheck:check,publishOverride:override??null});s.emit('proposal.raindrop.checked',{proposalId:id,status:check.status,traced:check.traced,flagged:check.flagged,override:Boolean(override)});return published;}));});
  app.get('/api/executions/:id/original',async(req,res)=>{res.json(await run(s=>{const original=s.inspectOriginal(String(req.params.id)),principal=res.locals.principal;
   if(original.session?.tenantId!==principal.tenantId||(identity&&principal.role!=='admin'&&original.session?.principalId!==principal.userId)||(principal.role!=='admin'&&(original.session?.role==='admin'||original.contextAtPlanning?.scope?.role==='admin')))throw Object.assign(new Error('Historical evidence access denied'),{status:403});
   return original;

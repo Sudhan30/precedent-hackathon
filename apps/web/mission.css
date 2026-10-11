@@ -139,3 +139,10 @@
 .demo-reset-error{margin:0;color:#b42318}
 .demo-reset-panel button{justify-self:start;font-size:12px;padding:6px 12px}
 @media(max-width:760px){.demo-reset{position:static;align-items:flex-start;margin-top:12px}}
+/* Raindrop second check on a draft rule. */
+.mc-raindrop{display:grid;grid-template-columns:1fr auto;gap:2px 12px;align-items:center;margin:12px 0 4px;padding:10px 12px;border-radius:10px;border:1px solid #e5e3dc;background:#faf9f6;font-size:12.5px}
+.mc-raindrop strong{font-size:13px}.mc-raindrop span{grid-column:1;color:#555}.mc-raindrop button{grid-column:2;grid-row:1/3;font-size:12px;padding:6px 11px}
+.mc-raindrop.verified{border-color:#b7e1c9;background:#f1faf4}.mc-raindrop.verified strong{color:#1d7a4f}
+.mc-raindrop.flagged{border-color:#f3c1bb;background:#fdf3f2}.mc-raindrop.flagged strong{color:#b42318}
+.mc-raindrop.pending,.mc-raindrop.unavailable{border-color:#f7dfb5;background:#fffaf0}.mc-raindrop.pending strong,.mc-raindrop.unavailable strong{color:#b54708}
+.mc-override{display:grid;gap:4px;font-size:12px;margin:6px 0}.mc-override textarea{font:inherit;padding:8px;border-radius:8px;border:1px solid #e5e3dc}
