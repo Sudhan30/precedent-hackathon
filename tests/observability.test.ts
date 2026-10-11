@@ -61,7 +61,9 @@ test('each run sends one Raindrop event keyed by the run ID, with verdicts and n
  telemetry.trackRun({runId:'run-1',mode:'governed',scenario:'warehouse',status:'FINISHED',executions:[{action:{toolId:'warehouse.query'},status:'SUCCEEDED',decision:{verdict:'ALLOW',ruleId:'INTERNAL-02'}},{action:{toolId:'demo_export.send'},status:'BLOCKED',decision:{verdict:'BLOCK',ruleId:'DATA-18'}}]});
  await new Promise(resolve=>setImmediate(resolve));
  assert.equal(sent.length,1);assert.equal(sent[0].event_id,'run-1');assert.equal(sent[0].properties.allowed,1);assert.equal(sent[0].properties.blocked,1);
- assert.deepEqual(sent[0].ai_data.tool_calls.map((call:any)=>call.result),['ALLOW INTERNAL-02','BLOCK DATA-18']);
+ assert.deepEqual(sent[0].ai_data.tool_calls.map((call:any)=>call.result),['SUCCEEDED · ALLOW INTERNAL-02','BLOCKED · BLOCK DATA-18']);
+ // Raindrop drops an event whose tool call has any status other than "error" (verified live).
+ assert.ok(sent[0].ai_data.tool_calls.every((call:any)=>call.status===undefined||call.status==='error'));
  assert.ok(!JSON.stringify(sent).includes('Weekly active'));
  new BackendTelemetry(new InMemorySpanExporter()).trackRun({runId:'run-2',mode:'baseline',scenario:'investigation',status:'FAILED',executions:[]});
 });

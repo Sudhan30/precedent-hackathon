@@ -35,14 +35,16 @@ export class BackendTelemetry{
   if(!this.trackEvents)return;const count=(verdict:string)=>run.executions.filter(e=>e.decision?.verdict===verdict).length;
   const properties={mode:run.mode,scenario:run.scenario,status:run.status,allowed:count('ALLOW'),blocked:count('BLOCK'),approvalRequired:count('REQUIRE_APPROVAL')};
   const event={event_id:run.runId,user_id:'precedent-'+run.mode,event:'precedent.run',properties,ai_data:{input:`${run.mode} run · ${run.scenario}`,output:`${run.status} · ${properties.allowed} allowed · ${properties.blocked} blocked · ${properties.approvalRequired} need approval`,convo_id:run.runId,
-   tool_calls:run.executions.map(e=>({name:e.action.toolId,status:e.status,result:e.decision?`${e.decision.verdict}${e.decision.ruleId?' '+e.decision.ruleId:''}`:undefined}))}};
+   // Raindrop silently drops an event whose tool call carries any status other than "error",
+   // so the outcome goes in result and status marks only genuine failures (UNKNOWN or FAILED).
+   tool_calls:run.executions.map(e=>({name:e.action.toolId,result:`${e.status}${e.decision?` · ${e.decision.verdict}${e.decision.ruleId?' '+e.decision.ruleId:''}`:''}`,...(['UNKNOWN','FAILED'].includes(e.status)?{status:'error',error:`${e.status}: outcome not confirmed`}:{})}))}};
   void this.trackEvents([event]).catch(()=>undefined);
  }
  async flush(){await this.provider.forceFlush();}
  async close(){await this.provider.shutdown().catch(()=>undefined);}
 }
 export function configuredTelemetry(key=process.env.RAINDROP_WRITE_KEY){return key?new BackendTelemetry(new OTLPHttpJsonTraceExporter({url:'https://api.raindrop.ai/v1/traces',headers:{Authorization:'Bearer '+key}}),undefined,
- events=>fetch('https://api.raindrop.ai/v1/events/track',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(events),signal:AbortSignal.timeout(5000)})):undefined;}
+ events=>fetch('https://api.raindrop.ai/v1/events/track',{method:'POST',headers:{Authorization:'Bearer '+key,'Content-Type':'application/json'},body:JSON.stringify(events),signal:AbortSignal.timeout(5000)}).then(response=>{if(!response.ok)console.warn('Raindrop event export failed: HTTP '+response.status);return response;},error=>{console.warn('Raindrop event export failed: '+(error as Error).name);throw error;})):undefined;}
 export class TelemetryRuntime implements DomainRuntime{
  private tail:Promise<unknown>=Promise.resolve();
  constructor(private readonly source:DomainRuntime,private readonly telemetry:BackendTelemetry){}

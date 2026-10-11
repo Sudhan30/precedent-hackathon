@@ -606,7 +606,7 @@ Implements `DEMO_PLAN.md` use case 2 and the runbook in `DEMO_RUNBOOK.md`. Use c
 - Checks: 108 unit tests, eval 50/50 (0 false allows), Playwright 16/16, MongoDB tests 5/5 on the local replica set; live warehouse query and kill-switch preview verified.
 - `DEMO_SCRIPT.md` rewritten as the final 4-feature, 2-minute script.
 
-## Atlas playbook search and stage rehearsal (2026-10-11, ~18:30–19:30 UTC)
+## Atlas playbook search and stage rehearsal (2026-10-11, ~18:30 UTC)
 
 - **Playbook vector search in Atlas:** each playbook's written procedure is embedded with Voyage and stored in a separate `playbook_vectors` collection (outside the transactional snapshot, so embeddings never reach `/api/state`). Atlas `$vectorSearch` (`precedent_playbook_vector`, filtered by tenant, candidate ids and embedding model) retrieves candidates, then Voyage rerank (threshold 0.40) decides. Procedures not yet indexed are backfilled and reranked directly. Fallback order: Atlas → Voyage rerank → keyword (labelled degraded). `npm run setup:atlas` creates the index; Cluster0 is an M10, so the 3-index free-tier cap does not apply. Mission Control shows "Stored in MongoDB Atlas · vector indexed" / "Matched by Atlas Vector Search + Voyage rerank". Live: `demo:prepare` saved a playbook as `atlas-vector-search/INDEXED`.
 - **Voyage rate limit (open):** the Voyage account has no payment method, so it is limited to 3 requests/min and 10K tokens/min (HTTP 429). Live discovery, context retrieval and memory reuse therefore often fall back to keyword matching. Adding a payment method lifts the limit.
@@ -615,7 +615,7 @@ Implements `DEMO_PLAN.md` use case 2 and the runbook in `DEMO_RUNBOOK.md`. Use c
 - **Checks:** `npm test` 118 tests, 109 pass, 9 skipped, 0 fail. Evaluation 50/50, 0 false allows. Playwright 16/16 (run with `NODE_ENV=test`, because this clone's `.env.local` sets production). Web rebuilt and API restarted.
 
 
-## Conversational follow-ups and result tables (2026-10-11, ~20:00 UTC)
+## Conversational follow-ups and result tables (2026-10-11, ~19:00 UTC)
 
 - **Why "can you read that data" ignored saved memory:** each message was planned with no chat history, and agent memory was matched only by the message's own words (Voyage is rate-limited, so keyword matching ran). The follow-up shared no words with the saved question, so it got 0 memories and the model asked which table was meant.
 - **Fixes:**
@@ -626,14 +626,14 @@ Implements `DEMO_PLAN.md` use case 2 and the runbook in `DEMO_RUNBOOK.md`. Use c
 - **Live check (engineer1):** the warehouse question showed the table, and "can you read that data" queried `acme_dw.t_04417` using 1 agent-memory entry.
 - **Checks:** 121 tests (112 pass, 9 skipped, 0 fail), evaluation 50/50 with 0 false allows, Playwright 16/16.
 
-## Reset demo button (2026-10-11, ~20:30 UTC)
+## Reset demo button (2026-10-11, ~19:15 UTC)
 
 - The demo:prepare steps now live in `packages/demo-prepare` and are shared by `npm run demo:prepare` and a new admin-only **Reset demo** button in the Mission Control banner.
 - `POST /api/demo/prepare` (admin) starts one background job (409 while one is running). It calls the API on loopback with the requesting administrator's credentials: a fresh namespace, Agent A, LogLens usage, then three Docs Preview approvals. `GET /api/demo/prepare` returns the steps and readiness checks; the panel polls it and offers "Start from the beginning", which clears that tab's chats and reloads.
 - **Test:** `tests/demo-reset.test.ts` covers employee refusal, one job at a time, a new namespace and all 3 checks passing. 122 tests (113 pass, 9 skipped, 0 fail), evaluation 50/50, Playwright 16/16.
 - **Live:** reset from the UI as manager in 25 s, policy v5, all three checks ✓, zero page errors.
 
-## Policy MCP-03: web search and browsing MCPs blocked (2026-10-11, ~21:00 UTC)
+## Policy MCP-03: web search and browsing MCPs blocked (2026-10-11, ~19:45 UTC)
 
 - **Rule:** MCP-03 blocks open-web search, fetch, crawl and browser MCPs outright, because pages from the open web can carry prompt injection. There is no approval path. It outranks a company allow; admins cannot approve a flagged request (409); connecting re-checks it.
 - **Policy check:** every governed MCP request is labelled by Claude Haiku 5.5 (`packages/mcp/classify.ts`, official `@anthropic-ai/sdk` 0.133.0, structured output, effort low). It runs once at request time (prompt and name; skipped when policy already blocks) and again at submit (name, endpoint, purpose). The model only labels; `mcpConnectionDecision` decides. Request fields are treated as untrusted data. If the model is unavailable, a keyword fallback runs, labelled as such. Each check is recorded (`mcp.policy.checked`), shown on the card and used in impact replay.
@@ -643,9 +643,16 @@ Implements `DEMO_PLAN.md` use case 2 and the runbook in `DEMO_RUNBOOK.md`. Use c
 - **Routing fix (pasted links and install commands):** a bare MCP link (`https://mcp.sentry.dev/mcp`), `claude mcp add …`, `code --add-mcp '{…}'` or an `mcpServers` block now starts an MCP request. Before, these went to the chat agent, which said it could not install anything. Name and endpoint are pre-filled. Live: Sentry was judged not search and goes to admin approval with its endpoint pre-filled; the Playwright `--add-mcp` command was blocked by MCP-03 (browser automation). Ordinary links remain chat messages. 127 tests (118 pass), Playwright 16/16.
 - **Finance table renamed:** `finance.rev_by_cust` is now `finance.restricted_revenue_by_customer` (catalog, tests, TEST_PLAYBOOK, TEST_STEPS, DEMO_RUNBOOK). `acme_dw.t_04417` keeps its opaque name by decision, because Feature 2 depends on the agent not guessing it. Atlas `warehouse_rows` re-seeded on restart (t_04417: 12 rows, finance table: 3 rows). Live: the finance user queried the renamed table and got 3 rows. 127 tests (118 pass), evaluation 50/50.
 
-## MCP request demand (2026-10-11, ~22:00 UTC)
+## MCP request demand (2026-10-11, ~20:05 UTC)
 
 - New `mcp_demand` MongoDB collection, one record per MCP (tenant + demo + MCP key). On each governed submit the count rises by 1 only for a new requester; the same person asking again links the request but does not bump it. Requests blocked by MCP-03 are not counted.
 - **Admin console:** one card per MCP, sorted by distinct requesters (then oldest), with an "N people requested" badge and a note when several requests wait. A company-wide decision answers all waiting requests for that MCP: same endpoint approved (each person resumes), different endpoint or denial closed. A one-time approval covers one request.
 - **Users:** "N people have asked for Linear, which moves it up the review queue." Employees see counts, never who asked.
 - **Live:** engineer1 ×2, engineer2 and sales requested Linear; count 3. Tests: 129 (120 pass, 9 skipped), Playwright 16/16.
+
+## Raindrop events were being dropped (2026-10-11, ~20:40 UTC)
+
+- **Symptom:** the Query API (key now in `.env.local` as `RAINDROP_QUERY_API_KEY`) showed only 9 events. Most runs since setup were missing: every run that used a tool.
+- **Cause, verified live:** `/v1/events/track` returns 200 but silently drops any event whose `ai_data.tool_calls` item has a `status` other than `"error"`. We sent `status:"SUCCEEDED"`/`"BLOCKED"`.
+- **Fix:** the outcome and verdict go in `result` (e.g. "BLOCKED · BLOCK DATA-18"); `status:"error"` is sent only for UNKNOWN or FAILED executions. Non-OK export responses are now logged. A test asserts no other status is sent.
+- **Live:** a governed warehouse run with a tool call is now stored in Raindrop. 130 tests (121 pass, 9 skipped).
