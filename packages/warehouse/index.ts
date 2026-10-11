@@ -26,6 +26,15 @@ export const classificationOf=(name?:string|null)=>findTable(name)?.classificati
 // tagged with its table and an ordinal that preserves row order.
 export const warehouseCollection='warehouse_rows';
 export const warehouseDocuments=()=>catalog.flatMap(table=>table.rows.map((row,ordinal)=>({table:table.name,ordinal,...row})));
+// A small display preview: the most recent rows first (largest value first within a week).
+// The receipt keeps the full summary; this is only what the chat draws as a table.
+export interface WarehousePreview{table:string;columns:string[];rows:Record<string,string|number>[];rowCount:number}
+export function warehousePreview(name?:string|null,stored?:Record<string,string|number>[],limit=5):WarehousePreview|null{
+ const table=findTable(name);if(!table)return null;const rows=stored??table.rows;if(!rows.length)return null;
+ const value=(row:Record<string,string|number>)=>Number(row.active_customers??row.revenue_usd??0);
+ const ordered=rows.toSorted((a,b)=>String(b.iso_week??'').localeCompare(String(a.iso_week??''))||value(b)-value(a));
+ return {table:table.name,columns:table.columns.filter(column=>column in rows[0]),rows:ordered.slice(0,limit),rowCount:rows.length};
+}
 export type WarehouseRows=(table:string)=>Promise<Record<string,string|number>[]>;
 // A fixed, read-only aggregation per table; never arbitrary SQL from the agent. Rows default to
 // the catalog's own copy; the live gateway passes the rows it read from Atlas (origin noted).

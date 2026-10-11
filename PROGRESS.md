@@ -614,3 +614,14 @@ Implements `DEMO_PLAN.md` use case 2 and the runbook in `DEMO_RUNBOOK.md`. Use c
 - **Rehearsal on the live site** (browser automation, DEMO_SCRIPT order): F1 BLOCKED with no connection; F2 0 rows → hint → CHECKPOINT-OK → saved for engineering; engineer2 used `acme_dw.t_04417` first try; sales got 0 rows plus the hint form; guardrail published; quarantine, then the test call was BLOCKED (INCIDENT-01) with receipts unchanged 2 → 2. Zero page errors. Then `demo:prepare -- --reset`: policy v4, all three readiness checks pass.
 - **Checks:** `npm test` 118 tests, 109 pass, 9 skipped, 0 fail. Evaluation 50/50, 0 false allows. Playwright 16/16 (run with `NODE_ENV=test`, because this clone's `.env.local` sets production). Web rebuilt and API restarted.
 
+
+## Conversational follow-ups and result tables (2026-10-11, ~20:00 UTC)
+
+- **Why "can you read that data" ignored saved memory:** each message was planned with no chat history, and agent memory was matched only by the message's own words (Voyage is rate-limited, so keyword matching ran). The follow-up shared no words with the saved question, so it got 0 memories and the model asked which table was meant.
+- **Fixes:**
+  - The browser sends the chat's earlier run ids. The server keeps at most 3 runs from the same chat side and demo that belong to the caller (own sessions, or a matching real user id), and gives the planner `recentConversation`: the message, the reply, and each tool's result.
+  - When matching finds nothing, a warehouse question still receives the department's most recent approved entries, labelled "use it if this request refers to the same data". Other departments still get none.
+  - The "Inspect context" count now includes agent memory and playbooks.
+- **Visual results:** warehouse receipts now store a preview (columns, the 5 most recent rows, the total row count). The tool card shows it as a table with an inline bar and the footnote "Showing the 5 most recent of 12 rows". A finished tool run now says, in plain language built from receipts (no model text), what was found or blocked. The suggestion chips stay on one scrollable line.
+- **Live check (engineer1):** the warehouse question showed the table, and "can you read that data" queried `acme_dw.t_04417` using 1 agent-memory entry.
+- **Checks:** 121 tests (112 pass, 9 skipped, 0 fail), evaluation 50/50 with 0 false allows, Playwright 16/16.

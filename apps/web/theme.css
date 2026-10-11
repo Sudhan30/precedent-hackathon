@@ -375,3 +375,17 @@ main.login-page{background:radial-gradient(900px 500px at 15% 10%,rgba(var(--sig
 .focus-mode[data-team=admin] .focus-bar .focus-who:first-of-type{border-color:#c9b8f5}
 @keyframes focus-in{from{opacity:.6;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.focus-mode .comparison{animation:none}}
+/* Query result preview: a few rows as a compact table with an inline bar for the number column. */
+.conversation .result-preview{margin:10px 0 4px;border:1px solid var(--chat-line,#e5e3dc);border-radius:10px;background:#fff;overflow:hidden}
+.conversation .result-preview figcaption{padding:8px 12px;font-size:12px;color:var(--chat-muted,#6b6b66);border-bottom:1px solid var(--chat-line,#e5e3dc)}
+.conversation .result-preview figcaption strong{color:var(--chat-text,#222)}
+.conversation .result-preview table{width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums}
+.conversation .result-preview th{text-align:left;font-weight:600;font-size:11px;color:var(--chat-muted,#6b6b66);padding:6px 12px;background:#faf9f6}
+.conversation .result-preview td{padding:6px 12px;border-top:1px solid #f0eee8;color:var(--chat-text,#222)}
+.conversation .result-preview .num{text-align:right;position:relative;width:45%}
+.conversation .result-preview td.num .bar{position:absolute;right:12px;top:7px;bottom:7px;max-width:calc(100% - 24px);border-radius:4px;background:rgba(var(--signal-rgb,20,160,140),.14)}
+.conversation .result-preview td.num span:last-child{position:relative}
+.conversation .result-footnote{margin:0;padding:7px 12px;font-size:11px;color:var(--chat-muted,#6b6b66);border-top:1px solid #f0eee8;background:#faf9f6}
+.conversation .starter-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
+.conversation .starter-chips::-webkit-scrollbar{display:none}
+.conversation .starter-chips button{flex:none;white-space:nowrap}

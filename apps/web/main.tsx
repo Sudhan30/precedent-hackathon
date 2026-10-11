@@ -87,7 +87,7 @@ function App(){
   const requestEpoch=authEpoch.current;
   setSending(previous=>({...previous,[target]:true}));setError('');
   try{
-   const accepted=await (isMcpConnectionPrompt(prompt)||(/\btenable\b/i.test(prompt)&&/\b(connect|add|install|download)\b/i.test(prompt))?api('mcp/comparison',{task:prompt,target}):api('comparison',{task:prompt,scenario:dataScenario,planner,target,...extra}));
+   const accepted=await (isMcpConnectionPrompt(prompt)||(/\btenable\b/i.test(prompt)&&/\b(connect|add|install|download)\b/i.test(prompt))?api('mcp/comparison',{task:prompt,target}):api('comparison',{task:prompt,scenario:dataScenario,planner,target,previousRunIds:(target==='both'?[...selectedChats().baseline.slice(-3),...selectedChats().governed.slice(-3)]:selectedChats()[target].slice(-3)),...extra}));
    if(requestEpoch!==authEpoch.current)return;
    const chats=selectedChats();for(const current of runs)if(!chats[current.mode as ChatMode].length)chats[current.mode as ChatMode]=[current.id];for(const run of accepted.runs)chats[run.mode as ChatMode]=[...chats[run.mode as ChatMode],run.id].slice(-20);
    sessionStorage.setItem('precedent.chat-runs',JSON.stringify(chats));

@@ -1,4 +1,4 @@
-import {findTable,queryWarehouse,type WarehouseRows} from '../warehouse/index.js';
+import {findTable,queryWarehouse,warehousePreview,type WarehouseRows,type WarehousePreview} from '../warehouse/index.js';
 import {recordUsage} from '../incidents/index.js';
 import {asRuntime,type DomainRuntime} from '../../apps/server/runtime.js';
 import {fixtureResult} from '../demo-tools/fixtures.js';
@@ -43,11 +43,13 @@ export class ExecutionGateway{
   // refer to controlled synthetic fixtures; agents cannot choose URLs or payloads.
   const dispatchStarted=performance.now();
   try{
-   const result=registry[action.toolId].external?await this.downstream.execute(action,id,baseline):
-    action.toolId==='warehouse.query'&&this.warehouseRows&&findTable(action.target)?{result:queryWarehouse(action.target,await this.warehouseRows(action.target!),'read from MongoDB Atlas').summary}:
+   const stored=action.toolId==='warehouse.query'&&this.warehouseRows&&findTable(action.target)?await this.warehouseRows(action.target!):undefined;
+   const result:{result:string;receiptId?:string;preview?:WarehousePreview|null}=registry[action.toolId].external?await this.downstream.execute(action,id,baseline) as {result:string;receiptId?:string}:
+    stored?{result:queryWarehouse(action.target,stored,'read from MongoDB Atlas').summary}:
     {result:fixtureResult(action.resourceId,action.toolId,action.target)};
+   if(action.toolId==='warehouse.query')result.preview=warehousePreview(action.target,stored);
    const dispatchDurationMs=performance.now()-dispatchStarted;
-   return await this.runtime.run(service=>service.store.atomic(()=>{const receipt={id:randomUUID(),runId:intent.record.runId,demoRunId:intent.record.demoRunId,executionId:id,toolId:action.toolId,toolVersion:registry[action.toolId].version,sessionId:action.sessionId,baseline,at:service.clock(),result:result.result,downstreamReceiptId:result.receiptId??null};service.record('receipt',receipt);const completed={...intent.record,status:'SUCCEEDED',receiptId:receipt.id};service.record('execution',completed);recordUsage(service,completed);service.emit('execution.completed',{executionId:id,sessionId:action.sessionId,receiptId:receipt.id,dispatchDurationMs});this.episode(service,completed);return completed;}));
+   return await this.runtime.run(service=>service.store.atomic(()=>{const receipt={id:randomUUID(),runId:intent.record.runId,demoRunId:intent.record.demoRunId,executionId:id,toolId:action.toolId,toolVersion:registry[action.toolId].version,sessionId:action.sessionId,baseline,at:service.clock(),result:result.result,...(result.preview?{preview:result.preview}:{}),downstreamReceiptId:result.receiptId??null};service.record('receipt',receipt);const completed={...intent.record,status:'SUCCEEDED',receiptId:receipt.id};service.record('execution',completed);recordUsage(service,completed);service.emit('execution.completed',{executionId:id,sessionId:action.sessionId,receiptId:receipt.id,dispatchDurationMs});this.episode(service,completed);return completed;}));
   }catch{
    const unknown={...intent.record,status:'UNKNOWN'};await this.runtime.run(service=>service.store.atomic(()=>{service.record('execution',unknown);recordUsage(service,unknown);service.emit('execution.unknown',{executionId:id,sessionId:action.sessionId,reason:'Dispatch result could not be confirmed; no automatic retry',dispatchDurationMs:performance.now()-dispatchStarted});}));return unknown;
   }

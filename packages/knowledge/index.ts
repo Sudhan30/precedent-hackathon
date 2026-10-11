@@ -67,12 +67,19 @@ export const knowledgeText=(k:Knowledge)=>`Question: ${k.question}\nTable: ${k.t
 const words=(text:string)=>new Set(text.toLowerCase().match(/[a-z0-9]{3,}/g)??[]);
 export async function rankKnowledge(task:string,entries:Knowledge[],key=process.env.VOYAGE_API_KEY,fetcher:typeof fetch=fetch,topK=2){
  if(!entries.length)return {entries:[] as Knowledge[],engine:'none',degraded:false};
- if(key){try{return {entries:(await voyageRerank(key,fetcher,task,entries.map(knowledgeText),topK,0.4)).map(index=>entries[index]),engine:'voyage-rerank',degraded:false};}catch{/* fall through to labelled keyword matching */}}
- const query=words(task);
- const ranked=entries.map(k=>{const doc=words(knowledgeText(k));let hits=0;for(const word of query)if(doc.has(word))hits++;return {k,score:hits/Math.max(1,query.size)};}).filter(item=>item.score>=0.2).sort((a,b)=>b.score-a.score).slice(0,topK).map(item=>item.k);
- return {entries:ranked,engine:'keyword',degraded:Boolean(key)};
+ let result:{entries:Knowledge[];engine:string;degraded:boolean}|undefined;
+ if(key){try{result={entries:(await voyageRerank(key,fetcher,task,entries.map(knowledgeText),topK,0.4)).map(index=>entries[index]),engine:'voyage-rerank',degraded:false};}catch{/* fall through to labelled keyword matching */}}
+ if(!result){
+  const query=words(task);
+  const ranked=entries.map(k=>{const doc=words(knowledgeText(k));let hits=0;for(const word of query)if(doc.has(word))hits++;return {k,score:hits/Math.max(1,query.size)};}).filter(item=>item.score>=0.2).sort((a,b)=>b.score-a.score).slice(0,topK).map(item=>item.k);
+  result={entries:ranked,engine:'keyword',degraded:Boolean(key)};
+ }
+ // Follow-ups such as "can you read that data" do not resemble the saved question. The entries
+ // are already limited to this department, so offer the most recent ones as related context.
+ if(!result.entries.length)return {entries:entries.toSorted((a,b)=>b.approvedAt-a.approvedAt).slice(0,topK),engine:'department-recent',degraded:result.degraded};
+ return result;
 }
-export const knowledgeContext=(k:Knowledge)=>({id:k.id,question:k.question,table:k.table,definitions:k.definitions||null,approvedForDepartment:k.department,provenUnderPolicyVersion:k.policyVersion,note:'Approved agent memory for your department. Use this table; current policy still decides every query.'});
+export const knowledgeContext=(k:Knowledge,engine?:string)=>({id:k.id,question:k.question,table:k.table,definitions:k.definitions||null,approvedForDepartment:k.department,provenUnderPolicyVersion:k.policyVersion,note:engine==='department-recent'?'Approved agent memory for your department from an earlier question. Use it if this request refers to the same data (see recentConversation); current policy still decides every query.':'Approved agent memory for your department. Use this table; current policy still decides every query.'});
 // Entries are advice proven under one policy; a change that blocks their table re-validates them.
 export function revalidateKnowledge(service:Precedent,policy:Policy){
  for(const k of service.store.all<Knowledge>('knowledge')){
