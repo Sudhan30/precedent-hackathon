@@ -7,7 +7,7 @@ import type {Action,Policy,PolicyProposal} from '../contracts/index.js';
 type Verdict='ALLOW'|'BLOCK'|'REQUIRE_APPROVAL';
 const ruleLabels:Record<string,string>={
  'DATA-18':'Restricted customer data to external tools','INCIDENT-01':'Quarantined tool versions','ACCESS-07':'Staging database without a current approval',
- 'MCP-01':'Unreviewed or blocked MCP servers','MCP-02':'Administrator-disabled tools','SANDBOX-APPROVAL':'Sandbox exports that need approval',
+ 'MCP-01':'Unreviewed or blocked MCP servers','MCP-03':'Web search and browsing MCPs','MCP-02':'Administrator-disabled tools','SANDBOX-APPROVAL':'Sandbox exports that need approval',
  'DEFAULT-DENY':'Actions with no matching allow rule','IDENTITY-01':'Unverified actors or resources','POLICY-01':'Unverifiable policy'
 };
 export function draftPolicy(policy:Policy,proposal:PolicyProposal):Policy{
@@ -30,7 +30,7 @@ export function impactPreview(service:Precedent,proposalId:string){
  for(const run of service.store.all('run')){
   if(run.mode!=='governed'||!run.mcpResult)continue;
   const name=run.mcpResult.name??'Tenable',endpoint=run.mcpResult.endpoint||null;
-  const decide=(policy:Policy)=>run.scenario==='tenable'?mcpDecision(policy,'governed'):mcpConnectionDecision(policy,name,endpoint);
+  const decide=(policy:Policy)=>run.scenario==='tenable'?mcpDecision(policy,'governed'):mcpConnectionDecision(policy,name,endpoint,run.mcpResult.classification);
   const before=decide(current),after=decide(draft);
   rows.push({id:run.id,kind:'mcp',label:`Connect ${name} MCP`,from:before.verdict,to:after.verdict,ruleId:after.ruleId});
  }

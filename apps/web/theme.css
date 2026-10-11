@@ -389,3 +389,9 @@ main.login-page{background:radial-gradient(900px 500px at 15% 10%,rgba(var(--sig
 .conversation .starter-chips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}
 .conversation .starter-chips::-webkit-scrollbar{display:none}
 .conversation .starter-chips button{flex:none;white-space:nowrap}
+/* MCP policy check (MCP-03): the judge's label and reason on the connection card. */
+.conversation .mcp-check{display:flex;gap:8px;align-items:flex-start;margin:8px 0;padding:8px 10px;border-radius:8px;font-size:12px;line-height:1.45;border:1px solid var(--chat-line,#e5e3dc);background:#faf9f6;color:var(--chat-text,#222)}
+.conversation .mcp-check .icon{width:14px;height:14px;flex:none;margin-top:2px}
+.conversation .mcp-check strong{display:block;font-size:11px;letter-spacing:.02em;margin-bottom:2px}
+.conversation .mcp-check.flagged{border-color:#f3c1bb;background:#fdf3f2}.conversation .mcp-check.flagged .icon{color:#b42318}
+.conversation .mcp-check.clear .icon{color:#1d7a4f}

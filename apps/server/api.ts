@@ -12,6 +12,7 @@ import {runEvaluations} from '../../packages/evaluation/index.js';
 import {impactPreview} from '../../packages/proposals/impact.js';
 import {candidatePlaybooks,discoverPlaybooks,distillPlaybook,playbookComparison,playbookContext,voyagePlaybookRanker,type Playbook} from '../../packages/playbooks/index.js';
 import {agentEngineIndex} from '../../packages/playbooks/agent-engine.js';
+import type {McpClassifier} from '../../packages/mcp/classify.js';
 import {prepareDemo,type DemoCheck,type DemoRequest} from '../../packages/demo-prepare/index.js';
 import {blastRadius} from '../../packages/incidents/index.js';
 import {approveCandidate,departmentKnowledge,knowledgeComparison,knowledgeContext,proposeFromRun,rankKnowledge,rejectCandidate} from '../../packages/knowledge/index.js';
@@ -25,7 +26,7 @@ import {discoverTenable,mcpDecision,tenableEndpoint,type McpDiscovery} from '../
 const actionInput=actionInputSchema;
 export interface AuthenticatedPrincipal{userId:string;role:'employee'|'admin';tenantId:string;department?:Department;}
 export interface IdentityAdapter{resolve(req:express.Request):Promise<AuthenticatedPrincipal|null>;}
-export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGateway,identity?:IdentityAdapter,telemetry?:BackendTelemetry,applicationMonitor?:ApplicationMonitor,mcpDiscover:()=>Promise<McpDiscovery>=discoverTenable,reviewedDiscover?:(endpoint:string)=>Promise<McpDiscovery>,plannerTransport?:PlannerTransport){
+export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGateway,identity?:IdentityAdapter,telemetry?:BackendTelemetry,applicationMonitor?:ApplicationMonitor,mcpDiscover:()=>Promise<McpDiscovery>=discoverTenable,reviewedDiscover?:(endpoint:string)=>Promise<McpDiscovery>,plannerTransport?:PlannerTransport,mcpClassifier?:McpClassifier){
  const runtime=asRuntime(source);
  // Read-only views (display, lookups) use a consistent snapshot outside the write queue.
  const read=<T>(fn:(service:Precedent)=>T|Promise<T>)=>runtime.read?runtime.read(fn):runtime.run(fn);const playbookIndex=agentEngineIndex()??runtime.playbookIndex;
@@ -117,7 +118,7 @@ export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGatew
   admin(res);const input=z.object({expectedVersion:z.number().int().positive(),tenableAllowed:z.boolean(),deniedTools:z.array(z.enum(toolIds)),reason:z.string().trim().min(1).max(1000)}).strict().parse(req.body);
   res.json(await controlAs(res,s=>{if(s.policy().version!==input.expectedVersion)throw Object.assign(new Error('Policy changed; refresh before publishing'),{status:409});return s.publish({...s.policy(),tenableAllowed:input.tenableAllowed,deniedTools:[...new Set(input.deniedTools)]},false,input.reason);}));
  });
- const unknownMcp=registerMcpRequests(app,{run,controlAs,admin,owned,exclusive:fn=>gateway?gateway.exclusive(fn):fn(),discover:reviewedDiscover});
+ const unknownMcp=registerMcpRequests(app,{run,controlAs,admin,owned,exclusive:fn=>gateway?gateway.exclusive(fn):fn(),discover:reviewedDiscover,...(mcpClassifier?{classify:mcpClassifier}:{})});
  app.post('/api/mcp/comparison',async(req,res)=>{
   const {task,target}=z.object({task:z.string().trim().min(1).max(2000).refine(task=>isMcpConnectionPrompt(task)||(/\btenable\b/i.test(task)&&/\b(connect|add|install|download)\b/i.test(task)),'Explicitly request connecting an MCP'),target:z.enum(['both','baseline','governed']).default('both')}).strict().parse(req.body);
   if(!(/^tenable(?: |$)/i.test(nameFromPrompt(task))||(!/\bmcp\b/i.test(task)&&/\btenable\b/i.test(task)))){res.json(await unknownMcp(res,task,target));return;}

@@ -37,6 +37,7 @@
   },
   "dependencies": {
     "@ai-sdk/groq": "^4.0.58",
+    "@anthropic-ai/sdk": "^0.133.0",
     "@modelcontextprotocol/sdk": "^1.32.1",
     "@mongodb-js/agent-engine-sdk-memory": "0.11.8",
     "@opentelemetry/api": "1.9.1",

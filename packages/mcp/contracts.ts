@@ -13,5 +13,11 @@ export type McpRequest=z.infer<typeof mcpRequestSchema>;
 export const isMcpConnectionPrompt=(task:string)=>/\bmcp\b/i.test(task)&&/\b(connect|configure|add|install|download)\b/i.test(task);
 export function nameFromPrompt(task:string){
  const match=task.match(/\b(?:connect|configure|add|install|download)\s+(?:(?:with|to|the|a|an)\s+)*([a-zA-Z0-9][a-zA-Z0-9 ._-]*?)\s+mcp\b/i);
- return mcpNameSchema.parse((match?.[1]??'New MCP').trim());
+ if(match?.[1])return mcpNameSchema.parse(match[1].trim());
+ // A pasted link names the server: site name plus a "<name>-mcp" path segment (docs.parallel.ai/.../search-mcp → "Parallel Search").
+ const link=task.match(/https:\/\/[^\s]+/)?.[0];
+ if(link){try{const url=new URL(link);const site=url.hostname.split('.').slice(-2)[0];const part=url.pathname.split('/').map(segment=>segment.match(/^([a-z0-9]+)-mcp$/i)?.[1]).find(Boolean);
+  const title=(word:string)=>word[0].toUpperCase()+word.slice(1).toLowerCase();const name=[site,part].filter((word):word is string=>Boolean(word)&&/^[a-z0-9]+$/i.test(word!)).map(title).join(' ');
+  if(name)return mcpNameSchema.parse(name);}catch{/* fall through */}}
+ return mcpNameSchema.parse('New MCP');
 }
