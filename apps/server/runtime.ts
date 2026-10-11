@@ -20,7 +20,7 @@ export class LocalRuntime implements DomainRuntime{
  async readEvents(cursor:number){return this.service.store.all('event').slice(cursor,cursor+200);}
  async close(){this.service.store.close();}
 }
-const collectionNames:Record<string,string>={mcp_request:'mcp_requests',policy:'policy_heads',policy_version:'policy_versions',session:'sessions',run:'runs',event:'events',approval:'approvals',grant:'grants',execution:'executions',receipt:'receipts',episode:'episodes',incident:'incidents',metadata:'metadata',proposal:'proposals',usage_edge:'usage_edges',policy_rule:'policy_rules',playbook:'playbooks',membership:'memberships',memory_candidate:'memory_candidates',knowledge:'knowledge'};
+const collectionNames:Record<string,string>={mcp_request:'mcp_requests',policy:'policy_heads',policy_version:'policy_versions',session:'sessions',run:'runs',event:'events',approval:'approvals',grant:'grants',execution:'executions',receipt:'receipts',episode:'episodes',incident:'incidents',metadata:'metadata',proposal:'proposals',usage_edge:'usage_edges',policy_rule:'policy_rules',playbook:'playbooks',membership:'memberships',memory_candidate:'memory_candidates',knowledge:'knowledge',mcp_demand:'mcp_demand'};
 export const atlasSearchLayout=()=>z.enum(['compact','full']).parse(process.env.ATLAS_SEARCH_LAYOUT??'compact');
 // One server-side aggregation reads the same collections in the transaction's
 // snapshot. No parallel driver operations or authoritative-state cache.
