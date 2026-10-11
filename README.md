@@ -8,7 +8,7 @@ Live demo: **https://precedent.vikhas.com** (synthetic Acme tenant; demo sign-in
 
 ![Precedent architecture](docs/architecture.svg)
 
-An annotated version is in [docs/architecture.html](docs/architecture.html).
+An annotated version is in [docs/architecture.html](docs/architecture.html). The pitch deck is [docs/pitch-deck.html](docs/pitch-deck.html) and the video voice-over is in [docs/speaker-notes.md](docs/speaker-notes.md).
 
 | Sponsor | What it does in Precedent |
 |---|---|

@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Precedent pitch</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;600&display=swap">
+<style>
+:root{--bg:#E9E7E1;--ink:#0F1729;--muted:#3B4658}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#0B111C;--ink:#E8EDF4;--muted:#A3B0C2}}
+:root[data-theme="dark"]{--bg:#0B111C;--ink:#E8EDF4;--muted:#A3B0C2}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 'IBM Plex Sans',system-ui,sans-serif;overflow-x:hidden}
+main{max-width:1200px;margin:0 auto;padding:32px 16px 64px}
+h1{font:700 28px 'Space Grotesk',system-ui,sans-serif;margin:0 0 20px}
+.slide{width:100%;aspect-ratio:16/9;overflow:hidden;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.18);position:relative}
+.frame{width:1920px;height:1080px;transform-origin:0 0;position:absolute;left:0;top:0}
+.frame h1,.frame h2,.frame h3,.frame p{margin:0}
+.notes{color:var(--muted);margin:10px 4px 36px;font-size:15px}
+</style></head>
+<body><main><h1>Precedent pitch</h1>
+<div class="slide"><div class="frame"><section id="cover" data-transition="fade" style="width:1920px;height:1080px;box-sizing:border-box;position:relative;background:#0F1729;color:#F6F5F0;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:28px;letter-spacing:4px;text-transform:uppercase;color:#4FD1C1">Harness Engineering · SF Tech Week</p>
+<div style="display:flex;flex-direction:column;gap:32px">
+<h1 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:160px;font-weight:700;line-height:1;color:#F6F5F0">Precedent</h1>
+<p style="font-size:48px;line-height:1.3;color:#C9D3E3;width:1400px">The harness that lets company agents act, learn and be stopped, safely.</p>
+</div>
+<p style="font-size:28px;color:#8FA0BA">Built on MongoDB Atlas · Voyage AI · Claude · Raindrop</p>
+
+</section>
+</div></div>
+<p class="notes"><b>Speaker notes:</b> Company AI agents fail in two ways: they do things they shouldn't, and they forget what people taught them. Precedent is the harness that fixes both.</p><div class="slide"><div class="frame"><section id="problem" data-transition="fade" style="width:1920px;height:1080px;box-sizing:border-box;position:relative;background:#F6F5F0;color:#0F1729;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:64px">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:28px;letter-spacing:4px;text-transform:uppercase;color:#1F8A7E">The problem</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:80px;font-weight:700;line-height:1.1;width:1500px">Company agents fail in two ways.</h2>
+<div style="display:flex;gap:48px">
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#FFFFFF;padding:48px;border:1px solid #E2E0D8;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:44px;font-weight:700;color:#C2410C">They do what they shouldn't</h3>
+<p style="font-size:32px;line-height:1.4;color:#3B4658">Install a web-search MCP that reads prompt-injected pages. Query a finance-only table.</p>
+</div>
+<div style="flex:1;display:flex;flex-direction:column;gap:20px;background:#FFFFFF;padding:48px;border:1px solid #E2E0D8;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:44px;font-weight:700;color:#C2410C">They forget what they learned</h3>
+<p style="font-size:32px;line-height:1.4;color:#3B4658">Every agent re-guesses the same undocumented warehouse table, every time.</p>
+</div>
+</div>
+
+</section>
+</div></div>
+<p class="notes"><b>Speaker notes:</b> Agents fail in companies for two reasons: they do things they shouldn't, and they forget what they learned.</p><div class="slide"><div class="frame"><section id="gate" data-transition="fade" style="width:1920px;height:1080px;box-sizing:border-box;position:relative;background:#F6F5F0;color:#0F1729;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:56px">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:28px;letter-spacing:4px;text-transform:uppercase;color:#1F8A7E">How it works</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1">The model proposes. Policy decides.</h2>
+<div style="display:flex;align-items:center;gap:24px">
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:40px;border:1px solid #E2E0D8;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:700">Agent</h3>
+<p style="font-size:28px;line-height:1.4;color:#3B4658">Claude plans each step.</p>
+</div>
+<p style="font-size:64px;color:#1F8A7E">&#8594;</p>
+<div style="flex:1.4;display:flex;flex-direction:column;gap:12px;background:#0F1729;padding:40px;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:700;color:#4FD1C1">Precedent gate</h3>
+<p style="font-size:28px;line-height:1.4;color:#C9D3E3">Every tool and MCP call is checked against company policy in MongoDB Atlas, with memory from Voyage AI.</p>
+</div>
+<p style="font-size:64px;color:#1F8A7E">&#8594;</p>
+<div style="flex:1;display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:40px;border:1px solid #E2E0D8;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:700">Tools</h3>
+<p style="font-size:28px;line-height:1.4;color:#3B4658">Only what policy allows runs.</p>
+</div>
+</div>
+<p style="font-size:32px;line-height:1.4;color:#3B4658">Raindrop traces every decision and gives an independent second opinion.</p>
+
+</section>
+</div></div>
+<p class="notes"><b>Speaker notes:</b> Precedent sits between the agent and every tool. The model only proposes; a deterministic policy engine on MongoDB Atlas decides, and Raindrop traces everything.</p><div class="slide"><div class="frame"><section id="moments" data-transition="fade" style="width:1920px;height:1080px;box-sizing:border-box;position:relative;background:#F6F5F0;color:#0F1729;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:28px;letter-spacing:4px;text-transform:uppercase;color:#1F8A7E">What it does</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:40px;border:1px solid #E2E0D8;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:700">Block</h3>
+<p style="font-size:28px;line-height:1.4;color:#3B4658">Web-search MCPs are judged by Claude and blocked by policy before any network contact.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:40px;border:1px solid #E2E0D8;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:700">Request</h3>
+<p style="font-size:28px;line-height:1.4;color:#3B4658">Other MCPs queue for InfoSec, ranked by how many people asked, with Raindrop evidence.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:40px;border:1px solid #E2E0D8;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:700">Learn once</h3>
+<p style="font-size:28px;line-height:1.4;color:#3B4658">A human approves what the agent learned; it is saved in MongoDB, and the next engineer gets it first try.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFFFFF;padding:40px;border:1px solid #E2E0D8;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:700">Improve and stop</h3>
+<p style="font-size:28px;line-height:1.4;color:#3B4658">It drafts its own guardrails, checked by Raindrop, and quarantines a tool in one click.</p>
+</div>
+</div>
+
+</section>
+</div></div>
+<p class="notes"><b>Speaker notes:</b> Side by side, the same agent without Precedent connects to anything, forgets everything and keeps using a compromised connector. With Precedent it blocks risky MCPs, queues the rest for InfoSec by demand, learns once with a human and reuses it through MongoDB, writes its own guardrails after Raindrop checks them, and stops in one click.</p><div class="slide"><div class="frame"><section id="sponsors" data-transition="fade" style="width:1920px;height:1080px;box-sizing:border-box;position:relative;background:#F6F5F0;color:#0F1729;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:48px">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:28px;letter-spacing:4px;text-transform:uppercase;color:#1F8A7E">Built on</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:72px;font-weight:700;line-height:1.1">The learning loop runs through MongoDB.</h2>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:32px">
+<div style="display:flex;flex-direction:column;gap:12px;background:#E8F5EF;padding:40px;border:2px solid #13AA52;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:700;color:#0B6E35">MongoDB Atlas</h3>
+<p style="font-size:28px;line-height:1.4;color:#14532D">Every decision and policy version, department memory, MCP demand, Vector Search playbooks, Change Streams.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#EEF2FF;padding:40px;border:2px solid #6366F1;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:700;color:#3730A3">Voyage AI</h3>
+<p style="font-size:28px;line-height:1.4;color:#312E81">Embeddings and reranking pick the right lesson, rule and playbook for each request.</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px;background:#FFF4EC;padding:40px;border:2px solid #EA7A2E;border-radius:20px">
+<h3 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:40px;font-weight:700;color:#9A3412">Raindrop</h3>
+<p style="font-size:28px;line-height:1.4;color:#7C2D12">Traces every run. A second check that can hold a self-written rule, never approve one.</p>
+</div>
+</div>
+<p style="font-size:28px;line-height:1.4;color:#3B4658">Planning and judging by Claude through eve. The model proposes; policy decides.</p>
+
+</section>
+</div></div>
+<p class="notes"><b>Speaker notes:</b> MongoDB Atlas is the system of record and the memory: lessons written there are read back before the next agent plans. Voyage AI finds the right lesson. Raindrop traces everything and double-checks every rule Precedent writes for itself.</p><div class="slide"><div class="frame"><section id="proof" data-transition="fade" style="width:1920px;height:1080px;box-sizing:border-box;position:relative;background:#0F1729;color:#F6F5F0;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;gap:56px">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:28px;letter-spacing:4px;text-transform:uppercase;color:#4FD1C1">Measured, not mocked</p>
+<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:40px">
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:120px;font-weight:700;line-height:1;color:#4FD1C1">0</p>
+<p style="font-size:32px;line-height:1.4;color:#C9D3E3">false allows across 50 policy evaluation cases</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:120px;font-weight:700;line-height:1;color:#4FD1C1">1 query</p>
+<p style="font-size:32px;line-height:1.4;color:#C9D3E3">for a second engineer, after one human-approved lesson (was 2 queries and a correction)</p>
+</div>
+<div style="display:flex;flex-direction:column;gap:12px">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:120px;font-weight:700;line-height:1;color:#4FD1C1">+0</p>
+<p style="font-size:32px;line-height:1.4;color:#C9D3E3">new connector receipts after quarantine: the blocked call never reached the tool</p>
+</div>
+</div>
+<p style="font-size:28px;line-height:1.4;color:#8FA0BA">Synthetic Acme tenant. Every number on screen is read from recorded decisions and receipts.</p>
+
+</section>
+</div></div>
+<p class="notes"><b>Speaker notes:</b> Everything is measured: zero false allows in our policy evaluation, one query instead of two plus a correction once the lesson is learned, and after quarantine the connector's own receipt counter does not move.</p><div class="slide"><div class="frame"><section id="close" data-transition="fade" style="width:1920px;height:1080px;box-sizing:border-box;position:relative;background:#F6F5F0;color:#0F1729;font-family:'IBM Plex Sans', Arial, sans-serif;padding:128px;display:flex;flex-direction:column;justify-content:space-between">
+<p style="font-family:'Space Grotesk', Arial, sans-serif;font-size:28px;letter-spacing:4px;text-transform:uppercase;color:#1F8A7E">Precedent</p>
+<h2 style="font-family:'Space Grotesk', Arial, sans-serif;font-size:88px;font-weight:700;line-height:1.1;width:1500px">Block what's unsafe. Learn once. Reuse safely. Stop in one click.</h2>
+<p style="font-size:36px;color:#3B4658">precedent.vikhas.com</p>
+
+</section>
+</div></div>
+<p class="notes"><b>Speaker notes:</b> Block what's unsafe, learn once with a human, reuse it safely, and stop everything in one click. That's Precedent.</p>
+</main>
+<script>
+function fit(){document.querySelectorAll('.slide').forEach(s=>{s.querySelector('.frame').style.transform='scale('+(s.clientWidth/1920)+')';});}
+addEventListener('resize',fit);fit();
+</script></body></html>
