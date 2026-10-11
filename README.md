@@ -2,7 +2,7 @@
 
 **The harness that lets company agents act, learn and be stopped, safely.** Every tool and MCP call an agent proposes passes a deterministic policy gate; what agents learn is checked, approved by a human and stored in **MongoDB Atlas**, so the next agent gets it right the first time; and one click quarantines a compromised connector for every agent.
 
-Live demo: **https://precedent.vikhas.com** (synthetic Acme tenant; demo sign-ins are shared with judges separately). See [HOSTING.md](HOSTING.md) for operations and [PROGRESS.md](PROGRESS.md) for the full, tested build log.
+Live demo: **https://precedent.vikhas.com** (synthetic Acme tenant; demo sign-ins are shared with judges separately). See [HOSTING.md](HOSTING.md) for operations.
 
 ## Architecture
 
@@ -178,7 +178,7 @@ Local employee/admin identities are deliberate demo identities, with API role an
 
 Temporary grants allow one matching action until expiry, with a maximum duration of 300 seconds. Historical grants are context, not reusable permission. Governed runs save a consolidated episode containing the task, attempted actions, rule/version references, confirmed results and execution/event evidence IDs. Waiting and unknown outcomes remain explicit. Approval resume creates a new summary and excludes the superseded waiting summary from retrieval; both remain stored for inspection. Unknown dispatch outcomes are retained for inspection and cannot be retried through the same execution ID. Governance does not reverse completed calls.
 
-The scaffold's eve commands remain available as `agent:dev`, `agent:build`, and `agent:start`. Public deployment requires separate user approval. See [Precedent_Implementation_Plan.md](Precedent_Implementation_Plan.md) for the intended full architecture and [HANDOFF.md](HANDOFF.md) for the original intake checkpoint.
+The scaffold's eve commands remain available as `agent:dev`, `agent:build`, and `agent:start`. Public deployment requires separate user approval. See [docs/architecture.html](docs/architecture.html) for the architecture.
 
 For the retained local replica set, run the integration suite with:
 
