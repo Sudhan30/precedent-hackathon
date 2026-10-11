@@ -128,7 +128,7 @@ App: https://precedent.vikhas.com · Password for all demo accounts: the shared 
   ```
   Total revenue by customer for last quarter
   ```
-  When the **No results found.** form appears, enter table `finance.rev_by_cust` → **Ask again with this table**.
+  When the **No results found.** form appears, enter table `finance.restricted_revenue_by_customer` → **Ask again with this table**.
   You should see: `warehouse.query` **PENDING**, rule **DATA-31** "Finance-restricted tables need the finance department or a one-time approval".
 - [ ] **4.8** W1 → **Admin** → **Approval requests** → approve for **30 seconds** → back in the chat click **Resume after approval**.
   You should see: the query **SUCCEEDED**, then a memory card **Checkpoint: not saved to agent memory**, `CHECKPOINT-FIN-01`, with **no** approve button.
@@ -148,7 +148,7 @@ App: https://precedent.vikhas.com · Password for all demo accounts: the shared 
   ```
   Total revenue by customer for last quarter
   ```
-  If the form appears, enter `finance.rev_by_cust` → **Ask again with this table**.
+  If the form appears, enter `finance.restricted_revenue_by_customer` → **Ask again with this table**.
   You should see: the query runs **without** an approval hold (finance owns this table).
 - [ ] **4.12** W1 → **Mission Control** → **Agent memory**.
   You should see: `acme_dw.t_04417` with an **ENGINEERING** badge; the finance attempt under **Blocked at the checkpoint**; **Learning once vs reusing**: learning took 2 queries, 1 empty result, 1 correction; reuse took 1 query, no help.

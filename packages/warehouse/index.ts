@@ -15,7 +15,7 @@ export const catalog:Table[]=[
  {name:'acme_dw.t_04417',classification:'internal',description:'Weekly active customers by region (active = at least one order in the trailing 7 days).',columns:['iso_week','region','active_customers'],
   rows:weeks.flatMap((week,w)=>regions.map(([region,base])=>({iso_week:week,region,active_customers:base+w*137+(region==='APAC'?w*61:0)})))},
  {name:'acme_dw.evt_raw_2026',classification:'internal',description:'Raw clickstream events (no customer identifiers).',columns:['event_id','event_type','ts'],rows:[]},
- {name:'finance.rev_by_cust',classification:'finance-restricted',description:'Recognized revenue by customer and region.',columns:['customer_id','region','quarter','revenue_usd'],
+ {name:'finance.restricted_revenue_by_customer',classification:'finance-restricted',description:'Recognized revenue by customer and region.',columns:['customer_id','region','quarter','revenue_usd'],
   rows:regions.map(([region,base],i)=>({customer_id:'C-'+(1001+i),region,quarter:'2026-Q3',revenue_usd:base*312}))}
 ];
 export const tableNames=catalog.map(table=>table.name);

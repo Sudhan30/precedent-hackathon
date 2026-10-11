@@ -33,7 +33,7 @@ All warehouse data is synthetic and labelled synthetic. No real BigQuery connect
 | `acme_dw.weekly_active_customers` | Deprecated frozen copy; the obvious name, 0 rows (the classic trap) | internal |
 | `acme_dw.t_04417` | Weekly active customers by region (the right answer; opaque name, no description shown to agents) | internal |
 | `acme_dw.evt_raw_2026` | Raw events; 0 rows for this question | internal |
-| `finance.rev_by_cust` | Revenue by customer | finance-restricted |
+| `finance.restricted_revenue_by_customer` | Revenue by customer | finance-restricted |
 
 ## 3. Prerequisites checklist
 
@@ -104,7 +104,7 @@ All five use the shared demo password (given to presenters privately). The origi
 
 | Step | Action | Expected output | Done when |
 |---|---|---|---|
-| 2b.1 | User 1, **With Precedent**, Data warehouse: ask a question; in the No-results form enter table `finance.rev_by_cust` | `warehouse.query` **PENDING**, rule **DATA-31** "Finance-restricted tables need the finance department or a one-time approval" | Held for approval |
+| 2b.1 | User 1, **With Precedent**, Data warehouse: ask a question; in the No-results form enter table `finance.restricted_revenue_by_customer` | `warehouse.query` **PENDING**, rule **DATA-31** "Finance-restricted tables need the finance department or a one-time approval" | Held for approval |
 | 2b.2 | Admin console → Approval requests → approve 30 seconds; back in the chat → **Resume after approval** | Query **SUCCEEDED** (one-time approved access) | Answer shown |
 | 2b.3 | Read the memory card | **Checkpoint: not saved to agent memory**, `CHECKPOINT-FIN-01 · This table is finance-restricted…`; no approve button | Mission Control → Agent memory shows it under **Blocked at the checkpoint**; event `memory.checkpoint.denied` |
 

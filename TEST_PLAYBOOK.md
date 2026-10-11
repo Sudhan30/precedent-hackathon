@@ -77,10 +77,10 @@ Run `DEMO_RUNBOOK.md` Scenarios 1, 2, 2b, 3a and 3b (same flow, more detail). In
 | 5.1 | manager, **Without Precedent**, Data warehouse | `Weekly active customers by region last quarter` → enter table `acme_dw.t_04417` and the definition → ask again → repeat the question | Guessed table gives `0 rows`; the hint gives 12 rows (latest week **NA 4621, EMEA 3531, APAC 3074**); no memory card; the repeat gives 0 rows again | Plane A never learns |
 | 5.2 | manager, **With Precedent**, Data warehouse | Same question → 0 rows → hint → answer | Card **Add this to agent memory?** with `CHECKPOINT-OK` | Proposed, not yet stored |
 | 5.3 | manager | Click **Add to agent memory (engineering department)** | **Saved to agent memory**; Mission Control → Agent memory lists `acme_dw.t_04417` with an ENGINEERING badge | Stored only after approval |
-| 5.4 | manager, With Precedent | Hint table `finance.rev_by_cust` → held for approval (**DATA-31**) → Admin approve → **Resume after approval** | Query succeeds; memory card: **Checkpoint: not saved**, `CHECKPOINT-FIN-01` | Restricted data never enters memory |
+| 5.4 | manager, With Precedent | Hint table `finance.restricted_revenue_by_customer` → held for approval (**DATA-31**) → Admin approve → **Resume after approval** | Query succeeds; memory card: **Checkpoint: not saved**, `CHECKPOINT-FIN-01` | Restricted data never enters memory |
 | 5.5 | engineer2, With Precedent, Data warehouse | Same question | Queries `acme_dw.t_04417` **first try**, 12 rows, no hint form | Same-department reuse |
 | 5.6 | sales, With Precedent, Data warehouse | Same question | Context: "No approved agent memory"; 0 rows; hint form appears | No leak across departments |
-| 5.7 | finance, With Precedent, Data warehouse | Hint `finance.rev_by_cust` | Runs without an approval hold (finance owns the table) | Department rule respected |
+| 5.7 | finance, With Precedent, Data warehouse | Hint `finance.restricted_revenue_by_customer` | Runs without an approval hold (finance owns the table) | Department rule respected |
 | 5.8 | manager → Mission Control → Agent memory | — | **Learning once vs reusing**: learning took 2 queries, 1 empty result, 1 correction; reuse took 1 query, no help | Comparison measured |
 
 

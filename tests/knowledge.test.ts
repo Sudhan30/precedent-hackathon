@@ -27,7 +27,7 @@ test('department is self-declared once, admin-only afterwards, and never accepte
   assert.equal((await h.call('/me/department',{department:'finance'},token)).status,409);
   assert.equal((await h.call('/me',undefined,token)).data.department,'engineering');
   const session=(await h.call('/sessions',{},token)).data;assert.equal(session.department,'engineering');
-  assert.equal((await h.call('/actions',{sessionId:session.id,executionId:'x',toolId:'warehouse.query',resourceId:'warehouse',environment:'production',target:'finance.rev_by_cust',department:'finance'},token)).status,400,'clients cannot claim a department');
+  assert.equal((await h.call('/actions',{sessionId:session.id,executionId:'x',toolId:'warehouse.query',resourceId:'warehouse',environment:'production',target:'finance.restricted_revenue_by_customer',department:'finance'},token)).status,400,'clients cannot claim a department');
  }finally{await h.close();}
 });
 
@@ -76,7 +76,7 @@ test('approved memory is reused first time by the same department and never reac
 test('a finance-restricted table needs approval to query and the checkpoint keeps it out of non-finance memory',async()=>{
  const h=await harness();try{
   const eng1=await h.user('engineering'),admin=await h.user(undefined,'admin');
-  const held=await h.ask(eng1,'governed',{table:'finance.rev_by_cust'});const [query]=h.queries(held);
+  const held=await h.ask(eng1,'governed',{table:'finance.restricted_revenue_by_customer'});const [query]=h.queries(held);
   assert.deepEqual([query.status,query.decision.ruleId],['PENDING','DATA-31']);
   assert.equal((await h.call('/approvals/'+query.id,{allow:true,ttlSeconds:30},admin)).status,200);
   assert.equal((await h.call('/resume/'+query.id,{},eng1)).data.status,'SUCCEEDED');
@@ -85,7 +85,7 @@ test('a finance-restricted table needs approval to query and the checkpoint keep
   assert.equal((await h.call('/memory/candidates/'+candidate.id+'/approve',{scope:'department'},eng1)).status,409,'approval cannot override a checkpoint denial');
   assert.equal(h.store.all('knowledge').length,0);assert.ok(h.store.all('event').some((e:any)=>e.type==='memory.checkpoint.denied'));
   // Finance itself may query its table without approval; another table cannot ride on an approval.
-  const fin=await h.user('finance');assert.equal(h.queries(await h.ask(fin,'governed',{table:'finance.rev_by_cust'}))[0].status,'SUCCEEDED');
+  const fin=await h.user('finance');assert.equal(h.queries(await h.ask(fin,'governed',{table:'finance.restricted_revenue_by_customer'}))[0].status,'SUCCEEDED');
  }finally{await h.close();}
 });
 
