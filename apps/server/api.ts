@@ -183,7 +183,7 @@ export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGatew
   // call, but no company rules, episodes or playbooks are supplied before planning.
   const {task,scenario,planner,target,memory,hint,previousRunIds}=z.object({task:z.string().trim().min(1).max(2000),previousRunIds:z.array(z.string().uuid()).max(20).optional(),scenario:z.enum(['investigation','sandbox','sandbox-export','staging','warehouse']),planner:z.enum(['fixture','eve']).default(defaultPlanner),target:z.enum(['both','baseline','governed']).default('both'),memory:z.enum(['full','none']).default('full'),
    // A user-supplied table (and optional definitions) for the warehouse scenario.
-   hint:z.object({table:z.string().max(120).regex(tableNamePattern).refine(name=>tableNames.includes(name),'Unknown warehouse table'),definitions:z.string().trim().max(1000).optional(),previousRunId:z.string().uuid().optional()}).strict().optional()}).strict().refine(input=>!input.hint||input.scenario==='warehouse','Table hints apply to the warehouse scenario').parse(req.body);
+   hint:z.object({table:z.string().max(120,'Enter one table as dataset.table, for example acme_dw.t_04417.').regex(tableNamePattern,'Enter one table as dataset.table, for example acme_dw.t_04417.').refine(name=>tableNames.includes(name),'That table is not in the warehouse catalog. Check the name and try again.'),definitions:z.string().trim().max(1000).optional(),previousRunId:z.string().uuid().optional()}).strict().optional()}).strict().refine(input=>!input.hint||input.scenario==='warehouse','Table hints apply to the warehouse scenario').parse(req.body);
   if(planner==='fixture'&&!fixturePlannerAvailable)throw Object.assign(new Error('Scripted planning is disabled; configure the live eve worker'),{status:403});
   const demoRunId=await read(s=>s.demo().demoRunId);
   const comparisonId=randomUUID(),starts:Promise<Record<string,any>>[]=[];
@@ -283,5 +283,5 @@ export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGatew
   await flush();if(closed)return;
   timer=setInterval(()=>void flush(),runtime.writes===undefined?1000:200);heartbeat=setInterval(()=>{if(!closed)res.write(': keepalive\n\n');},15000);
  });
- app.use((error:unknown,_req:express.Request,res:express.Response,_next:express.NextFunction)=>{const e=error as Error&{status?:number};res.status(e.status??400).json({error:e.name?.startsWith('Mongo')?'Database operation failed; verify server configuration':e.message});});return app;
+ app.use((error:unknown,_req:express.Request,res:express.Response,_next:express.NextFunction)=>{const e=error as Error&{status?:number};res.status(e.status??400).json({error:error instanceof z.ZodError?(error.issues[0]?.message??'Invalid request'):e.name?.startsWith('Mongo')?'Database operation failed; verify server configuration':e.message});});return app;
 }

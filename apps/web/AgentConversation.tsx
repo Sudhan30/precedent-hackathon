@@ -61,6 +61,8 @@ function ResultPreview({preview}:{preview:{table:string;columns:string[];rows:Re
 }
 export function AgentConversation({mode,run,mcpRequest,mcpDemand,now,currentVersion,onMcpAction,draft,scenario,sending,canSend,history,onDraft,onScenario,onSend,executions,receipts,busy,onRepeat,onResume,onOpenControls,department,memoryCandidate,onMemoryDecision,onHint}: Props) {
  const [hintTable,setHintTable]=useState(''),[hintDefinitions,setHintDefinitions]=useState('');
+ // One table, written dataset.table (the same rule the server applies).
+ const hintValue=hintTable.trim().toLowerCase(),hintValid=/^[a-z0-9_]+\.[a-z0-9_]+$/.test(hintValue);
  const governed = mode === 'governed';
  const conversationalReply=Boolean(run?.reply&&run.status==='FINISHED'&&!run.plan?.length);
  // A finished tool run is summarized in plain language from its recorded outcomes and receipts;
@@ -120,11 +122,11 @@ export function AgentConversation({mode,run,mcpRequest,mcpDemand,now,currentVers
      </article>;
     })}
    </div>
-   {run.scenario==='warehouse'&&run.status==='FINISHED'&&!run.hint&&executions.some(execution=>execution.status==='SUCCEEDED'&&String(receipts.find(item=>item.id===execution.receiptId)?.result??'').startsWith('0 rows'))&&onHint&&<form className="decision hint-form" aria-label={`${mode} table hint`} onSubmit={event=>{event.preventDefault();if(hintTable.trim())onHint(hintTable.trim(),hintDefinitions);}}>
+   {run.scenario==='warehouse'&&run.status==='FINISHED'&&!run.hint&&executions.some(execution=>execution.status==='SUCCEEDED'&&String(receipts.find(item=>item.id===execution.receiptId)?.result??'').startsWith('0 rows'))&&onHint&&<form className="decision hint-form" aria-label={`${mode} table hint`} onSubmit={event=>{event.preventDefault();if(hintValid)onHint(hintValue,hintDefinitions);}}>
     <strong>No results found.</strong><p>Company data is spread across many undocumented tables. If you know where this lives, point the agent to it.</p>
-    <label>BigQuery table<input value={hintTable} onChange={event=>setHintTable(event.target.value)} placeholder="dataset.table" required maxLength={120}/></label>
+    <label>BigQuery table<input value={hintTable} onChange={event=>setHintTable(event.target.value)} placeholder="dataset.table" required maxLength={120} aria-invalid={Boolean(hintValue)&&!hintValid}/></label>{hintValue&&!hintValid&&<small className="hint-error" role="alert">Enter one table as dataset.table, for example acme_dw.t_04417.</small>}
     <label>Definitions (optional)<textarea value={hintDefinitions} onChange={event=>setHintDefinitions(event.target.value)} rows={2} maxLength={1000} placeholder="e.g. active = at least one order in the trailing 7 days"/></label>
-    <button type="submit" disabled={busy||!hintTable.trim()}>Ask again with this table</button>
+    <button type="submit" disabled={busy||!hintValid}>Ask again with this table</button>
    </form>}
    {governed&&memoryCandidate&&<article className={`decision memory-card memory-${memoryCandidate.status.toLowerCase()}`} aria-label="Agent memory proposal">
     <strong>{memoryCandidate.status==='PROPOSED'?'Add this to agent memory?':memoryCandidate.status==='APPROVED'?'Saved to agent memory':memoryCandidate.status==='DENIED'?'Checkpoint: not saved to agent memory':'Not saved'}</strong>

@@ -45,3 +45,14 @@ test('the planner sees this chat\'s earlier turns, never another user\'s',async(
   assert.equal(messages.at(-1).recentConversation,undefined,'another user\'s run is never shared');
  }finally{await new Promise<void>(resolve=>server.close(()=>resolve()));store.close();}
 });
+
+test('a malformed table hint gets one readable sentence, not raw validation JSON',async()=>{
+ const store=openStore(':memory:');const server=createApp(new Precedent(store)).listen(0,'127.0.0.1');
+ await new Promise<void>(resolve=>server.once('listening',resolve));const url=`http://127.0.0.1:${(server.address() as any).port}/api`;
+ try{
+  const token=(await (await fetch(url+'/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({role:'employee'})})).json() as any).token;
+  const ask=async(table:string)=>{const r=await fetch(url+'/comparison',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+token},body:JSON.stringify({task:'Weekly active customers by region',scenario:'warehouse',target:'governed',hint:{table}})});return {status:r.status,error:((await r.json()) as any).error};};
+  assert.deepEqual(await ask('finance.restricted_revenue_by_customer.acme_dw.t_04417'),{status:400,error:'Enter one table as dataset.table, for example acme_dw.t_04417.'});
+  assert.deepEqual(await ask('acme_dw.nope'),{status:400,error:'That table is not in the warehouse catalog. Check the name and try again.'});
+ }finally{await new Promise<void>(resolve=>server.close(()=>resolve()));store.close();}
+});
