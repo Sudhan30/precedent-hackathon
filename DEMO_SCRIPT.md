@@ -15,7 +15,8 @@ Four features, in this order. Prompts in `code` are typed exactly. All warehouse
 
 3. In W2 and W3, right chat (**With Precedent**): click **Query the data warehouse** (fills the question, selects the warehouse). **Do not send.**
 4. Warm up: send `hello` once in W1, then reload W1.
-5. Keep one or two tabs per person and do not run automated tests against the live site (the free Atlas tier throttles heavy traffic).
+5. **Focus mode:** in each user workspace, scroll down once (or press `F`). The menu, headers and banner disappear and both chats fill the screen; a slim strip keeps the user, policy version and a **Mission Control** button. It stays on after a reload. Exit with `Esc`, **Exit focus**, or by scrolling up past the top of a chat.
+6. Keep one or two tabs per person and do not run automated tests against the live site (the free Atlas tier throttles heavy traffic).
 
 ---
 
@@ -44,7 +45,7 @@ Four features, in this order. Prompts in `code` are typed exactly. All warehouse
 > "Engineering learned it once; every engineer gets it right first try. Sales never sees it."
 
 ### 1:25 Feature 3: self-writing guardrails
-- W1 → **Mission Control** → **Self-writing guardrails**.
+- W1 → **Mission Control** (button in the focus strip) → **Self-writing guardrails**.
 > "Admins approved Docs Preview MCP three times. Precedent drafted a narrow rule and replayed history first: N of M past decisions change, and everything sensitive stays protected."
 - Click **Publish rule** → "**Precedent rewrote its own guardrail**."
 

@@ -359,3 +359,19 @@ main.login-page{background:radial-gradient(900px 500px at 15% 10%,rgba(var(--sig
 .conversation .starter-chips button{display:inline-flex;align-items:center;gap:6px;padding:5px 10px;font-size:11px;font-weight:550;border-radius:999px;background:#fff;border:1px solid var(--chat-line);color:var(--ink-800)}
 .conversation .starter-chips button .icon{width:13px;height:13px;color:var(--chat-muted)}
 .conversation .starter-chips button:hover:not(:disabled){border-color:#c9c6bb}
+/* Focus mode (presenting): navigation, headers and the shared prompt collapse; the two
+   chats fill the screen side by side under one slim identity strip. */
+.app-shell.focus-mode{padding-left:0}
+.focus-mode .app-nav,.focus-mode .app-content>header,.focus-mode .workspace-heading,.focus-mode .shared-comparison{display:none}
+.focus-mode .app-content{max-width:none;padding:0 16px 12px}
+.focus-mode .comparison{animation:focus-in .28s ease-out}
+.focus-bar{display:flex;align-items:center;gap:12px;height:40px;flex:none;font-size:12px;color:var(--chat-muted,#6b6b66)}
+.focus-bar .brand-mark{width:22px;height:22px;border-radius:7px;display:grid;place-items:center;font-size:12px;font-weight:700;background:#272727;color:#fff}
+.focus-bar strong{color:var(--chat-text,#222);font-size:13px;margin-right:4px}
+.focus-bar .focus-who{display:inline-flex;align-items:center;gap:5px;padding:3px 9px;border:1px solid var(--chat-line,#e5e3dc);border-radius:999px;background:#fff;color:var(--chat-text,#222);font-weight:550}
+.focus-bar .focus-who .icon{width:12px;height:12px}
+.focus-bar .focus-hint{margin-left:auto;font-size:11px}
+.focus-bar button{padding:5px 11px;font-size:11px}
+.focus-mode[data-team=admin] .focus-bar .focus-who:first-of-type{border-color:#c9b8f5}
+@keyframes focus-in{from{opacity:.6;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.focus-mode .comparison{animation:none}}
