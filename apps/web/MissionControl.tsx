@@ -29,11 +29,34 @@ function useEvidence(path:string|null,key:string,api:Api,enabled:boolean){
  return {data,error};
 }
 
+// Rebuilds the clean starting state (the same steps as `npm run demo:prepare -- --reset`):
+// new demo namespace, then Agent A, LogLens usage and three Docs Preview approvals, all real.
+type Job={status:'RUNNING'|'DONE'|'FAILED';steps:string[];checks?:{ok:boolean;name:string;detail:string}[];version?:number;error?:string;startedAt:number;finishedAt?:number};
+function DemoReset({api}:{api:Api}){
+ const [job,setJob]=useState<Job|null>(null);const [open,setOpen]=useState(false);
+ useEffect(()=>{void api('demo/prepare',undefined,true).then(current=>{if(current?.status==='RUNNING'){setJob(current);setOpen(true);}}).catch(()=>undefined);},[]);
+ useEffect(()=>{if(job?.status!=='RUNNING')return;const timer=setInterval(()=>void api('demo/prepare',undefined,true).then(setJob).catch(()=>undefined),1500);return()=>clearInterval(timer);},[job?.status]);
+ const start=async()=>{if(!window.confirm('Reset the demo?\n\nThis clears agent memory, chats, published rules and quarantines, then rebuilds the starting history with the live model (about 1–2 minutes). Audit history is kept.'))return;
+  setOpen(true);try{setJob(await api('demo/prepare',{},true));}catch(error){setJob({status:'FAILED',steps:[],error:(error as Error).message,startedAt:Date.now()});}};
+ const finish=()=>{try{sessionStorage.removeItem('precedent.comparison');sessionStorage.removeItem('precedent.chat-runs');}catch{}window.location.reload();};
+ const seconds=job?Math.round(((job.finishedAt??Date.now())-job.startedAt)/1000):0;
+ return <div className="demo-reset">
+  <button className="secondary" disabled={job?.status==='RUNNING'} onClick={()=>void start()}>{job?.status==='RUNNING'?'Resetting…':'Reset demo'}</button>
+  {open&&job&&<div className="demo-reset-panel" role="status" aria-live="polite">
+   <strong>{job.status==='RUNNING'?`Resetting the demo… ${seconds}s`:job.status==='DONE'?`Clean demo ready · policy v${job.version} · ${seconds}s`:'Reset failed'}</strong>
+   <ol>{job.steps.map((text,index)=><li key={index} className={index<job.steps.length-1||job.status!=='RUNNING'?'done':'current'}>{text}</li>)}</ol>
+   {job.checks&&<ul>{job.checks.map(check=><li key={check.name} className={check.ok?'ok':'bad'}>{check.ok?'✓':'✗'} {check.name}: {check.detail}</li>)}</ul>}
+   {job.error&&<p className="demo-reset-error">{job.error}. Press Reset demo to try again.</p>}
+   {job.status==='DONE'&&<button onClick={finish}>Start from the beginning</button>}
+   {job.status!=='RUNNING'&&<button className="secondary" onClick={()=>setOpen(false)}>Close</button>}
+  </div>}
+ </div>;
+}
 export function MissionControl({state,busy,canAdmin,api,act}:Props){
  const [tab,setTab]=useState<Tab>('playbooks');
  const move=(event:React.KeyboardEvent,index:number)=>{if(event.key!=='ArrowRight'&&event.key!=='ArrowLeft')return;const next=tabs[(index+(event.key==='ArrowRight'?1:tabs.length-1))%tabs.length];setTab(next.id);document.getElementById('mc-tab-'+next.id)?.focus();};
  return <section className="mission" aria-label="Mission Control">
-  <div className="mission-heading"><span className="eyebrow">MISSION CONTROL</span><h2>Watch the harness learn, adapt and stop.</h2><p>Every number here is read from recorded runs, decisions and connector receipts.</p></div>
+  <div className="mission-heading"><span className="eyebrow">MISSION CONTROL</span><h2>Watch the harness learn, adapt and stop.</h2><p>Every number here is read from recorded runs, decisions and connector receipts.</p>{canAdmin&&<DemoReset api={api}/>}</div>
   {!canAdmin&&<p className="notice" role="status">Mission Control actions need an administrator account.</p>}
   <div className="mission-tabs" role="tablist" aria-label="Mission Control features">{tabs.map((item,index)=><button key={item.id} id={'mc-tab-'+item.id} role="tab" aria-selected={tab===item.id} aria-controls={'mc-panel-'+item.id} tabIndex={tab===item.id?0:-1} className={tab===item.id?'active':''} onClick={()=>setTab(item.id)} onKeyDown={event=>move(event,index)}><span className="mission-tab-number">{index+1}</span><span><strong>{item.label}</strong><small>{item.hint}</small></span></button>)}</div>
   <div role="tabpanel" id={'mc-panel-'+tab} aria-labelledby={'mc-tab-'+tab} className="mission-panel">

@@ -4,7 +4,7 @@ Four features, in this order. Prompts in `code` are typed exactly. All warehouse
 
 ## Before you go on stage (10 minutes before)
 
-1. On the host: `npm run demo:prepare -- --reset` and wait for three `✓` lines. This must be the **last** change before the demo: it clears agent memory, the published guardrail, quarantines and any tool-access changes.
+1. Signed in as `manager`: **Mission Control → Reset demo** (top right of the banner), confirm, and wait for **Clean demo ready** with three `✓` lines (about 30 s), then click **Start from the beginning**. Reload the other windows. (Same steps on the host: `npm run demo:prepare -- --reset`.) This must be the **last** change before the demo: it clears agent memory, the published guardrail, quarantines and any tool-access changes.
 2. Open three browser windows (separate profiles or private windows) at https://precedent.vikhas.com:
 
    | Window | User | Team colour | Open on |
@@ -70,4 +70,4 @@ Four features, in this order. Prompts in `code` are typed exactly. All warehouse
 - The warehouse question finds the right table first try: "This time it guessed right; the point is what happens when it doesn't." Then show W2/W3.
 
 ## After each rehearsal
-`npm run demo:prepare -- --reset`
+Mission Control → **Reset demo** (or `npm run demo:prepare -- --reset` on the host), then reload every window.

@@ -12,6 +12,7 @@ import {runEvaluations} from '../../packages/evaluation/index.js';
 import {impactPreview} from '../../packages/proposals/impact.js';
 import {candidatePlaybooks,discoverPlaybooks,distillPlaybook,playbookComparison,playbookContext,voyagePlaybookRanker,type Playbook} from '../../packages/playbooks/index.js';
 import {agentEngineIndex} from '../../packages/playbooks/agent-engine.js';
+import {prepareDemo,type DemoCheck,type DemoRequest} from '../../packages/demo-prepare/index.js';
 import {blastRadius} from '../../packages/incidents/index.js';
 import {approveCandidate,departmentKnowledge,knowledgeComparison,knowledgeContext,proposeFromRun,rankKnowledge,rejectCandidate} from '../../packages/knowledge/index.js';
 import {tableNamePattern,tableNames} from '../../packages/warehouse/index.js';
@@ -86,6 +87,30 @@ export function createApp(source:Precedent|DomainRuntime,gateway?:ExecutionGatew
   // transaction, so analysis can never undo or block the completed action.
   await control(s=>s.analyzeProposals()).catch(()=>undefined);res.json(result);});
  app.post('/api/demo/reset',async(req,res)=>{admin(res);const {expectedVersion,expectedDemoRunId}=z.object({expectedVersion:z.number().int().positive(),expectedDemoRunId:z.string().uuid()}).strict().parse(req.body);res.json(await controlAs(res,s=>s.resetDemo(expectedVersion,expectedDemoRunId)));});
+ // "Reset demo" (admins): the same steps as `npm run demo:prepare -- --reset`, run in the background
+ // by calling this API on loopback with the requesting administrator's own credentials.
+ let demoJob:{id:string;status:'RUNNING'|'DONE'|'FAILED';steps:string[];checks?:DemoCheck[];version?:number;error?:string;startedAt:number;finishedAt?:number}|undefined;
+ app.post('/api/demo/prepare',async(req,res)=>{admin(res);
+  if(demoJob?.status==='RUNNING')throw Object.assign(new Error('A demo reset is already running'),{status:409});
+  const base=`http://127.0.0.1:${req.socket.localPort}/api/`;const caller={...(req.headers.authorization?{Authorization:req.headers.authorization}:{}),...(req.headers.cookie?{Cookie:req.headers.cookie}:{})};
+  let employeeToken='';
+  const request:DemoRequest=async(path,body,role='admin')=>{
+   const response=await fetch(base+path,{method:body?'POST':'GET',headers:{'Content-Type':'application/json',...(role==='employee'&&employeeToken?{Authorization:'Bearer '+employeeToken}:caller)},...(body?{body:JSON.stringify(body)}:{}),redirect:'error',signal:AbortSignal.timeout(300000)});
+   const data=await response.json().catch(()=>({}));if(!response.ok)throw new Error(`${path}: ${data.error??response.status}`);return data;
+  };
+  const job:NonNullable<typeof demoJob>={id:randomUUID(),status:'RUNNING',steps:[],startedAt:Date.now()};demoJob=job;
+  void (async()=>{
+   try{
+    // Local demo sign-in has separate employee and admin roles; account sign-in uses the admin for both.
+    if(!identity)employeeToken=(await request('login',{role:'employee'})).token;
+    const result=await prepareDemo(request,{reset:true,step:text=>job.steps.push(text)});
+    Object.assign(job,{status:'DONE',checks:result.checks,version:result.version});
+   }catch(error){Object.assign(job,{status:'FAILED',error:(error as Error).message});}
+   finally{job.finishedAt=Date.now();}
+  })();
+  res.status(202).json(job);
+ });
+ app.get('/api/demo/prepare',(_req,res)=>{admin(res);res.json(demoJob??null);});
  app.post('/api/policy/preview',async(req,res)=>{admin(res);const input=policyChangeSchema.parse(req.body);res.json(await run(s=>previewPolicyChange(s.policy(),input)));});
  app.post('/api/policy',async(req,res)=>{admin(res);const input=policyChangeSchema.parse(req.body);res.json(await controlAs(res,s=>{const reviewed=previewPolicyChange(s.policy(),input);return s.publish({...s.policy(),sandboxAllowed:reviewed.input.sandboxAllowed,sandboxApprovalRequired:reviewed.input.sandboxApprovalRequired},false,reviewed.input.reason);}));});
  app.post('/api/mcp/policy',async(req,res)=>{

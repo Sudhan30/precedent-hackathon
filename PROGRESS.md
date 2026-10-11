@@ -625,3 +625,10 @@ Implements `DEMO_PLAN.md` use case 2 and the runbook in `DEMO_RUNBOOK.md`. Use c
 - **Visual results:** warehouse receipts now store a preview (columns, the 5 most recent rows, the total row count). The tool card shows it as a table with an inline bar and the footnote "Showing the 5 most recent of 12 rows". A finished tool run now says, in plain language built from receipts (no model text), what was found or blocked. The suggestion chips stay on one scrollable line.
 - **Live check (engineer1):** the warehouse question showed the table, and "can you read that data" queried `acme_dw.t_04417` using 1 agent-memory entry.
 - **Checks:** 121 tests (112 pass, 9 skipped, 0 fail), evaluation 50/50 with 0 false allows, Playwright 16/16.
+
+## Reset demo button (2026-10-11, ~20:30 UTC)
+
+- The demo:prepare steps now live in `packages/demo-prepare` and are shared by `npm run demo:prepare` and a new admin-only **Reset demo** button in the Mission Control banner.
+- `POST /api/demo/prepare` (admin) starts one background job (409 while one is running). It calls the API on loopback with the requesting administrator's credentials: a fresh namespace, Agent A, LogLens usage, then three Docs Preview approvals. `GET /api/demo/prepare` returns the steps and readiness checks; the panel polls it and offers "Start from the beginning", which clears that tab's chats and reloads.
+- **Test:** `tests/demo-reset.test.ts` covers employee refusal, one job at a time, a new namespace and all 3 checks passing. 122 tests (113 pass, 9 skipped, 0 fail), evaluation 50/50, Playwright 16/16.
+- **Live:** reset from the UI as manager in 25 s, policy v5, all three checks ✓, zero page errors.
