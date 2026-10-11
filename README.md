@@ -2,7 +2,20 @@
 
 **The harness that lets company agents act, learn and be stopped, safely.** Every tool and MCP call an agent proposes passes a deterministic policy gate; what agents learn is checked, approved by a human and stored in **MongoDB Atlas**, so the next agent gets it right the first time; and one click quarantines a compromised connector for every agent.
 
-Live demo: **https://precedent.vikhas.com** (synthetic Acme tenant; demo sign-ins are shared with judges separately). See [HOSTING.md](HOSTING.md) for operations.
+Live demo: **https://precedent.vikhas.com** (synthetic Acme tenant). See [HOSTING.md](HOSTING.md) for operations.
+
+### Judge access
+
+Sign in at https://precedent.vikhas.com with any of these demo accounts (password `pass1234` for all). Use one browser window or private window per account.
+
+| Username | Role | Use it for |
+|---|---|---|
+| `manager` | Admin (InfoSec), engineering | Admin console approvals, Mission Control, agent memory approval |
+| `engineer1`, `engineer2` | Employee, engineering | Requesting MCPs, warehouse questions, reusing approved memory |
+| `sales` | Employee, sales | Shows that engineering's memory never leaks to another department |
+| `finance` | Employee, finance | Querying the finance-only table |
+
+If the demo state looks used, `manager` can press **Reset demo** in Mission Control (about a minute) to rebuild a clean starting point. All data is synthetic.
 
 ## Architecture
 
