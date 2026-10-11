@@ -74,6 +74,9 @@ export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive
  app.post('/api/mcp/requests/:id/review',async(req,res)=>{
   admin(res);const input=z.object({allow:z.boolean(),scope:z.enum(['once','company']),expectedVersion:z.number().int().positive(),reason:z.string().trim().min(1).max(1000),ttlSeconds:z.number().finite().int().min(1).max(300).default(30)}).strict().parse(req.body);
   const reviewed=await controlAs(res,service=>{const request=currentRequest(service,String(req.params.id));if(request.tenantId!==res.locals.principal.tenantId)throw Object.assign(new Error('Request access denied'),{status:403});if(input.allow&&service.store.get('run',request.runId)?.mcpResult?.classification?.searchRelated)throw conflict('Web search and browsing MCPs are blocked by policy MCP-03 and cannot be approved');return reviewRequest(service,request.id,input);});
+  // A company-wide decision publishes a new policy version; re-draft self-written rules against it
+  // so a pending guardrail draft is not lost (its evidence, the approvals, is unchanged).
+  if(input.scope==='company')await run(service=>service.store.atomic(()=>analyzeMcpProposals(service))).catch(()=>undefined);
   // Learn: InfoSec's decision goes back to Raindrop as feedback on that request's event.
   try{signal?.(reviewed.runId,input.allow?'mcp_approved':'mcp_denied',input.allow?'POSITIVE':'NEGATIVE',{mcp:mcpKey(reviewed.name),scope:input.scope});}catch{/* telemetry never affects the decision */}
   res.json(reviewed);

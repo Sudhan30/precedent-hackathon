@@ -65,3 +65,14 @@ test('publishing a self-written rule is version-checked; afterwards only that ex
   assert.equal((await h.call('/proposals/'+draft.id+'/publish',{expectedVersion:h.service.policy().version},h.admin)).status,400);
  }finally{await h.close();}
 });
+
+test('a company-wide MCP decision keeps the self-written draft current: it is re-drafted on the new policy version',async()=>{
+ const h=await harness();try{
+  await h.approveOnce();await h.approveOnce();await h.approveOnce();
+  assert.equal(h.drafts().filter((d:any)=>d.baseVersion===h.service.policy().version).length,1);
+  const run=await h.start('Linear');const id=run.mcpResult.requestId;
+  await h.call('/mcp/requests/'+id+'/submit',{name:'Linear',endpoint:'https://mcp.linear.app/mcp',purpose:'Issue tracker'},h.employee);
+  assert.equal((await h.call('/mcp/requests/'+id+'/review',{allow:true,scope:'company',expectedVersion:h.service.policy().version,reason:'Wanted by many',ttlSeconds:30},h.admin)).status,200);
+  assert.equal(h.drafts().filter((d:any)=>d.baseVersion===h.service.policy().version).length,1,'draft re-based on the new policy version');
+ }finally{await h.close();}
+});
