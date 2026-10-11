@@ -30,7 +30,7 @@ try{
  // Feature 2 — Agent A is a first-day agent: the gate enforces every call, but it has no
  // company memory yet. Whatever the model actually does is recorded, never scripted.
  step('Agent A: first-day governed investigation, no company memory (live model unless --fixture)');
- const agentA=(await request('comparison',{task:process.env.DEMO_AGENT_A_TASK??'Customer Globex reports checkout failures since yesterday. Find the root cause.',scenario:'investigation',target:'governed',memory:'none',...planner},'employee')).runs[0];
+ const agentA=(await request('comparison',{task:process.env.DEMO_AGENT_A_TASK??'Customer Globex reports checkout failures since today. Find the root cause.',scenario:'investigation',target:'governed',memory:'none',...planner},'employee')).runs[0];
  // Feature 3 — usage of the LogLens connector (governed and the ungoverned baseline).
  step('LogLens connector usage in the sandbox (governed + baseline)');
  await request('comparison',{task:'Analyze the synthetic sandbox logs with example_connector.analyze.',scenario:'sandbox',target:'both',...planner},'employee');

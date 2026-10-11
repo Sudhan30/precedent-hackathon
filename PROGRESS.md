@@ -64,7 +64,7 @@ Use Node 24. On this checkout: `export PATH="$PWD/.tools/node/bin:$PATH"`.
 - Verify live Voyage rankings and Raindrop trace ingestion before claiming those integrations work.
 
 ## Git checkpoints and continuity
-Repository was not a Git checkout at intake; initialized without deleting files and committed the original source/checklist. Verified milestones have local commits. The initial API commit preceded review of a failed version test; the policy-version overwrite was fixed and verified in a corrective commit. The initial HANDOFF.md is retained as historical intake context; this file describes the current checkpoint.
+This checkout's available Git history starts with `425c8c1` (`chore: initial commit`) on 2026-10-11 in `Sudhan30/precedent-hackathon`. Earlier development notes describe an intake without Git, local milestone commits, and a corrective policy-version commit; those commits are not present in this checkout's available history, and their source repository has not been verified. Treat those notes and the initial HANDOFF.md as historical context, not as commit references or fresh validation for this repository.
 
 Node was downloaded with SHA-256 verification under ignored `.tools`. Chromium libraries/fonts were extracted under `.tools/browser-libs`, without system-wide installation. Port 3001 belonged to an unrelated service; Precedent uses 4311 and explicitly handles listen errors. Audit databases and the failed Mongo attempt are retained under ignored `.data`.
 
