@@ -1,0 +1,143 @@
+/* Precedent design system: warm paper, ink navigation and restrained jade. */
+:root{--ink:#242b28;--muted:#65716a;--line:#e3e5de;--green:#247458;--surface:#fffefa;background:#f6f6f1;color:var(--ink)}
+body{background:#f6f6f1}
+button{border-radius:10px;background:#247458;border-color:#247458;transition:background .18s,box-shadow .18s,transform .18s}
+button:hover:not(:disabled){box-shadow:0 3px 10px #18372b12}
+button:active:not(:disabled){transform:translateY(1px)}
+.secondary{background:#fffefa;color:#34453b;border-color:#dfe3d9}
+.secondary:hover{background:#f0f3eb;border-color:#aebfb0}
+.danger{background:#fff0ee;color:#a83434;border-color:#eabbbb}
+button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline-color:#398667}
+.app-shell{max-width:none;padding-left:232px;background:#f6f6f1;--ink:#242b28;--muted:#65716a;--line:#e3e5de}
+.app-shell .app-nav{left:0;width:232px;padding:32px 18px 24px;background:#182d25;color:#c5d2c7;border:0}
+.app-shell .app-nav .brand{color:#fcfff5;gap:11px;font-size:23px;padding:0 10px 44px;letter-spacing:-1px}
+.app-shell .brand-mark,.login-brand .brand-mark{border-radius:11px 11px 11px 2px;background:#d8edb1;color:#263f2b;font-family:Georgia,serif;font-weight:700;font-size:26px;width:36px;height:38px}
+.app-shell .brand small{color:#91a69a;font-size:8px;letter-spacing:1.8px;margin-top:8px}
+.app-shell .nav-label{color:#849c8c;font-size:9px;letter-spacing:1.7px;margin-bottom:12px}
+.app-shell .app-nav>div a{padding:14px 12px;border-radius:9px;font-size:12px;gap:11px}
+.app-shell .app-nav>div a:hover{background:#263e32}
+.app-shell .app-nav a[aria-current=page],.app-shell .app-nav>div a[aria-current=page]:hover{background:#d9eab9;color:#243a2c;box-shadow:none;font-weight:600}
+.app-shell .sidebar-note{border:1px solid #3b5142;background:linear-gradient(145deg,#263d2e,#1c3228);padding:19px 16px;border-radius:14px}
+.app-shell .sidebar-note>.icon{color:#d4e8ac;width:22px;height:22px}
+.app-shell .sidebar-note strong{color:#e7efdf;font-size:12px}
+.app-shell .sidebar-note p,.app-shell .nav-status{color:#a2b6a5;font-size:11px}
+.app-shell .nav-status{padding-top:20px}
+.app-shell .app-content{padding:0 36px 26px;max-width:1600px;margin:auto}
+.app-shell .app-header{min-height:88px;margin-bottom:30px;gap:16px}
+.app-header>div:first-child{margin-right:auto}
+.app-header>button{order:3;padding:9px 13px;font-size:11px}
+.app-header .eyebrow{font-size:8px;letter-spacing:1.6px;color:#7a887f}
+.app-shell .app-header h1{font-size:17px;font-weight:550;letter-spacing:-.4px;margin-top:7px}
+.app-shell .badge{background:#edf0e7;border:1px solid #dce3d4;border-radius:10px;padding:9px 12px;color:#426446;font-size:11px}
+.badge>.icon{width:19px;height:19px}
+.badge small{color:#6b7e68;font-size:8px}
+.app-shell .workspace-heading,.supporting-heading{margin-bottom:23px}
+.app-shell .workspace-heading h2,.supporting-heading h2{font-size:clamp(27px,2.65vw,39px);line-height:1.18;font-weight:500;letter-spacing:-1.6px;margin:11px 0}
+.app-shell .workspace-heading p,.supporting-heading p{font-size:13px;line-height:1.7;color:#69766c}
+.app-shell .workspace-heading .eyebrow,.supporting-heading .eyebrow{color:#547456;font-size:9px;letter-spacing:1.9px}
+.app-shell .workspace-heading>button{background:#fffefa;border:1px solid #d9dfd3;border-radius:10px;color:#3e5743;padding:11px 14px;font-size:11px}
+.app-shell .shared-comparison{background:#eeefe7;border:1px solid #e0e3d7;border-radius:11px;padding:12px 16px}
+.app-shell .shared-comparison>summary{color:#4e5f4d;font-size:11px}
+.app-shell .chat-runtime{font-size:10px;line-height:1.7;color:#75816f;margin:14px 0}
+.app-shell .comparison{gap:18px;border:0;border-radius:0;background:transparent;overflow:visible}
+.app-shell .conversation.panel{border:1px solid #e1e3d9;border-radius:18px;background:#fffefa;box-shadow:0 5px 18px #34453604;overflow:hidden}
+.app-shell .conversation.governed{border-color:#abc5ac;box-shadow:0 4px 24px #35543b07}
+.conversation .terminal-header{background:#fffefa;padding:19px 20px;border-bottom:1px solid #eeeee7}
+.conversation.governed .terminal-header{background:#edf3e5;border-bottom-color:#dce7d1}
+.conversation .agent-avatar{border-radius:10px;width:34px;height:34px;background:#f0f0e9;border-color:#e5e5dc;color:#6d756a}
+.conversation.governed .agent-avatar{background:#fffefa;color:#376c46;border-color:#cedcc2}
+.conversation .agent-identity h2{font-size:14px;font-weight:600;color:#29352b}
+.conversation .agent-identity small{color:#73816e;font-size:10px}
+.conversation .pill{font-size:8px;background:#f0f0e9;color:#66725f;padding:5px 8px}
+.conversation.governed .pill{background:#d9eac9;color:#386145}
+.conversation .conversation-description{background:#fffefa;font-size:10px;color:#73806e;padding:12px 20px;border-bottom:1px solid #f0f0e8}
+.conversation .conversation-content{height:clamp(310px,calc(100dvh - 720px),520px);padding:8px 0 20px;scrollbar-color:#cbd4c3 transparent}
+.conversation .conversation-empty{padding:12px 24px;min-height:100%}
+.conversation .empty-prompt{width:36px;height:36px;border-radius:11px;background:#f1f2e9;color:#727d68;transform:rotate(-7deg);border:1px solid #e5e7da;margin-bottom:10px}
+.conversation .empty-prompt .icon{transform:rotate(7deg)}
+.conversation.governed .empty-prompt{background:#e6efdb;color:#4f7648;border-color:#d1dfc4}
+.conversation .conversation-empty h3{font-family:Georgia,'Times New Roman',serif;font-weight:400;font-size:24px;letter-spacing:-.8px;color:#37452f}
+.conversation .conversation-empty p{font-size:11px;color:#75806c;line-height:1.7;margin:6px 0 14px}
+.conversation .starter-prompts{max-width:360px;gap:8px}
+.conversation .starter-prompts button{border-radius:10px;border-color:#e6e8dd;background:#fffefa;padding:8px 13px;font-size:11px;color:#3d4b38}
+.conversation .starter-prompts button:hover{background:#f5f7ee;border-color:#c7d2bb;transform:translateX(2px)}
+.conversation .starter-prompts small{font-size:10px;color:#6d7b62;margin-top:2px}
+.conversation .starter-prompts button>.icon:first-child{color:#849272}
+.conversation .chat-composer{background:#fffefa;padding:14px 16px 16px}
+.conversation .composer-surface{border-radius:15px;border-color:#dde2d3;background:#f5f6ef;padding:15px 15px 10px;box-shadow:0 2px 4px #24372b03}
+.conversation .composer-surface:focus-within{border-color:#80a37b;box-shadow:0 0 0 3px #62906012}
+.conversation .chat-composer textarea{color:#374530;font-size:13px;min-height:48px}
+.conversation .chat-composer textarea::placeholder{color:#7f8a77}
+.conversation .chat-send-row>button.send-message{border-radius:10px;background:#283c2e;width:33px;height:33px}
+.conversation.governed .chat-send-row>button.send-message{background:#337654}
+.conversation .chat-send-row>button.send-message:disabled{background:#e0e5d8;color:#87957b}
+.conversation .scope-label{background:#e9ecdf;color:#67795d}
+.conversation .chat-send-row summary{color:#657459}
+.conversation .chat-composer>small{color:#78856f;font-size:9px}
+.conversation .user-message{background:#ecf0e2;border-radius:15px 15px 3px 15px}
+.conversation .assistant-response>.context-inspector,.conversation .assistant-response>.plan-inspector,.conversation .assistant-response>.run-inspector{background:#f6f7f0;border-color:#e4e8dc}
+.conversation .agent-message p{color:#52604a}
+.conversation .agent-message small{color:#7a8772}
+.panel{background:#fffefa;border-radius:15px;border-color:#e0e4d8;box-shadow:0 4px 16px #34453603}
+.admin-metrics{gap:18px;margin:24px 0}
+.admin-metrics article{position:relative;padding:23px;border-radius:14px;border-color:#e0e4d8;background:#fffefa;gap:16px;overflow:hidden}
+.admin-metrics article:first-child{background:#eaf0de;border-color:#d4dfc4}
+.admin-metrics article>.icon{width:38px;height:38px;border-radius:11px;background:#eff2e7;color:#5b7850}
+.admin-metrics article:first-child>.icon{background:#d9e6c7}
+.admin-metrics strong{font-size:30px;letter-spacing:-1px;color:#31472d;font-weight:500;margin:10px 0 5px}
+.admin-metrics small{font-size:11px;color:#63735b}
+.admin-metrics p{font-size:11px;color:#7b8971}
+.admin-guide{padding:16px 20px;border:1px solid #e0e5d7;background:#f0f2e8;border-radius:12px;margin:20px 0 26px}
+.admin-guide>div>span{background:#fffefa;border-color:#d7decb;color:#5c7850}
+.admin-guide p{font-size:11px;color:#78886e;line-height:1.8}
+.admin-guide strong{font-size:12px;color:#465e3e}
+.section-title h2{font-size:21px;font-weight:550;letter-spacing:-.7px}
+.section-title .eyebrow{font-size:8px;letter-spacing:1.6px;color:#74876a}
+.server-card{background:#f2f6e9;border-color:#dce5cf;border-radius:12px;padding:18px}
+.tool-permission{padding:18px 0;border-color:#edf0e6}
+.tool-permission strong{font-size:12px;color:#3a4b34}
+.tool-permission small{line-height:1.7;color:#74836a}
+.tool-permission input,.toggle input{accent-color:#3c7b52}
+.admin-empty{padding:32px 14px;background:radial-gradient(ellipse at center,#f4f7ee,transparent 70%);margin-top:12px}
+.admin-empty>span{width:42px;height:42px;border-radius:13px;background:#edf3e4;color:#587f48}
+.admin-empty h3{font-size:15px;font-weight:500;color:#4f6442}
+.admin-empty p{font-size:11px;color:#7b8971}
+.activity-item{border-color:#e9ede1;padding:16px 0}
+.activity-item small{font-size:10px;color:#77866d}
+.activity-item p{line-height:1.7;color:#66765c}
+.notice{background:#f0f2e8;border-color:#e0e5d7;color:#6d7a63;font-size:11px;border-radius:10px;line-height:1.8}
+.admin-advanced{background:#ecefe4;border-color:#dce3d0;border-radius:12px;padding:18px 22px}
+footer{font-size:10px;color:#7e8d73;margin-top:26px}
+/* A product story and a focused, native account sign-in. */
+main.login-page{background:#f6f6f0;padding:32px 48px 22px;align-items:stretch;position:relative;overflow:hidden}
+.login-brand{font-size:23px;color:#253d2d;width:fit-content;z-index:1}
+.login-layout{display:grid;grid-template-columns:1.15fr 1fr;gap:70px;width:100%;max-width:1180px;margin:auto;align-items:center;padding:45px 0}
+.login-story{position:relative;padding:30px 0}
+.story-kicker{display:flex;align-items:center;gap:8px;font-size:9px;letter-spacing:1.8px;color:#6f815e;font-weight:600}
+.story-kicker>span{width:6px;height:6px;border-radius:50%;background:#79984e}
+.login-story h2{font-size:clamp(44px,4.8vw,70px);font-weight:400;letter-spacing:-3.6px;line-height:1.04;color:#283d2b;margin:27px 0 25px}
+.login-story h2 em{font-family:Georgia,'Times New Roman',serif;font-weight:400;color:#78935c;letter-spacing:-3px}
+.login-story>p{font-size:14px;color:#758269;max-width:360px;line-height:1.9}
+.policy-path{margin:32px 0 22px;max-width:350px;position:relative}
+.policy-path>div{display:flex;align-items:center;gap:13px;padding:12px 16px;color:#6c7e5d;font-size:12px}
+.policy-path small{font-size:10px;color:#7b8a6d;margin-top:3px}
+.policy-path .path-gate{background:#e8edda;border:1px solid #cedbb7;border-radius:12px;color:#436b35;box-shadow:0 5px 16px #435c2805}
+.path-gate>.icon:last-child{margin-left:auto}
+.path-line{display:block;width:1px;height:14px;background:#c7d3b7;margin-left:25px}
+.story-caption{font-size:8px;letter-spacing:1.2px;color:#8c997a}
+.login-form-side{position:relative;padding:35px;background:radial-gradient(ellipse,#e9eddb 0,transparent 70%)}
+.login-card{position:relative;max-width:410px;margin:auto;background:#fffefa;border:1px solid #dfe5d4;border-radius:20px;padding:40px;box-shadow:0 22px 60px #31451d08}
+.login-symbol{background:#edf2e2;color:#5c8144;border-color:#dce6ca;border-radius:12px;margin-bottom:26px}
+.login-card h1{font-size:28px;font-weight:500;letter-spacing:-1px;color:#30412b}
+.login-card>p{color:#7a886e;font-size:12px;line-height:1.8}
+.login-card input{background:#fcfdf8;border-color:#dfe5d5;height:47px;border-radius:9px;font-size:13px}
+.login-card label{color:#56694a;font-size:11px}
+.login-card .login-submit{background:#294b32;border-color:#294b32;height:47px;border-radius:9px}
+.login-card .login-help{color:#7e8c74;font-size:10px}
+.login-footer{justify-content:center;color:#869578;font-size:10px;margin:0}
+@keyframes arrive{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.login-card,.login-story,.workspace-heading,.supporting-heading{animation:arrive .4s ease-out both}
+@media(min-width:1680px){.app-shell .app-nav{left:0}}
+@media(max-width:1150px){.app-shell{padding-left:200px}.app-shell .app-nav{width:200px;padding-inline:12px}.app-shell .app-content{padding-inline:22px}.conversation .terminal-header{padding:16px 14px;gap:8px}.conversation .pill{font-size:7px}.conversation .agent-identity h2{font-size:12px}.conversation .conversation-empty{padding:24px 16px}.login-layout{gap:20px}.login-form-side{padding:15px}.login-story h2{font-size:55px}}
+@media(max-width:760px){.app-shell{padding:0}.app-shell .app-nav{position:relative;width:100%;padding:14px 16px;flex-direction:row;align-items:center;gap:14px}.app-shell .app-nav .brand{padding:0;font-size:19px;gap:8px}.app-shell .app-nav .brand small,.app-shell .nav-label,.app-shell .sidebar-note,.app-shell .nav-status{display:none}.app-shell .app-nav>div:not(.sidebar-note){display:flex;margin-left:auto;gap:4px}.app-shell .app-nav>div a{padding:10px;font-size:10px;gap:5px}.app-shell .app-nav .brand>span:last-child{display:none}.app-shell .brand-mark{width:30px;height:32px;font-size:23px}.app-shell .app-content{padding:0 16px 24px}.app-shell .app-header{min-height:82px;margin-bottom:24px;gap:8px}.app-header .eyebrow{font-size:7px}.app-shell .badge{font-size:10px;padding:7px}.badge small{font-size:7px}.badge>.icon{display:none}.app-header>button{font-size:10px;padding:8px}.app-shell .workspace-heading h2,.supporting-heading h2{font-size:29px;letter-spacing:-1px}.app-shell .workspace-heading{display:block}.app-shell .workspace-heading>button{margin-top:15px}.app-shell .comparison{grid-template-columns:1fr;gap:20px}.conversation .agent-identity h2{font-size:14px}.conversation .pill{font-size:8px}.conversation .conversation-content{height:380px}.conversation .conversation-empty h3{font-size:26px}.admin-metrics{gap:9px}.admin-metrics article{padding:14px;display:block}.admin-metrics article>.icon{width:30px;height:30px;margin-bottom:9px}.admin-metrics strong{font-size:25px}.admin-metrics small,.admin-metrics p{font-size:10px}.admin-guide{gap:12px;padding:15px}.admin-guide p{font-size:10px}.admin-guide strong{font-size:11px}.admin-guide>div{align-items:flex-start}.admin-side{grid-template-columns:1fr}main.login-page{padding:24px}.login-layout{grid-template-columns:1fr;padding:35px 0;gap:20px;max-width:450px}.login-story{padding:0}.login-story h2{font-size:42px;letter-spacing:-2px;margin:20px 0}.login-story h2 br{display:none}.login-story h2 br:after{content:' '}.login-story h2 em{display:block;font-size:40px;letter-spacing:-2px}.login-story h2 em br{display:initial}.login-story>p,.policy-path,.story-caption{display:none}.story-kicker{font-size:8px}.login-form-side{padding:0}.login-card{padding:30px;margin:0;max-width:none}.login-footer{margin-top:auto;font-size:9px}.login-brand{font-size:21px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}

@@ -1,0 +1,30 @@
+import {warehouseDocuments} from '../../packages/warehouse/index.js';
+import {connectConnector} from '../../packages/demo-tools/client.js';
+import {LocalRuntime,MongoRuntime} from './runtime.js';
+import {ExecutionGateway} from '../../packages/execution/index.js';
+import express from 'express';
+import {resolve} from 'node:path';
+import {existsSync} from 'node:fs';
+import {createApp} from './api.js';
+import {Precedent} from './service.js';
+import {openStore} from './store.js';
+import {startModelence,modelenceIdentity} from './modelence.js';
+import {configuredTelemetry,TelemetryRuntime} from '../../packages/observability/index.js';
+import {nativeModelenceMonitor} from '../../packages/observability/modelence.js';
+import {validateHosting} from './hosting.js';
+validateHosting(process.env);
+const authMode=process.env.AUTH_MODE??'demo';if(!['demo','modelence'].includes(authMode))throw new Error('AUTH_MODE must be demo or modelence.');
+process.env.MODELENCE_TRACKING_ENABLED??='false';
+const storage=process.env.MONGODB_URI?await MongoRuntime.connect(process.env.MONGODB_URI):new LocalRuntime(new Precedent(openStore(process.env.PRECEDENT_DB??'.data/precedent.db')));
+const telemetry=configuredTelemetry();const runtime=telemetry?new TelemetryRuntime(storage,telemetry):storage;
+const connector=await connectConnector(process.env.CONNECTOR_DB??(process.env.PRECEDENT_DB===':memory:'?':memory:':'.data/connector.db'));
+// Warehouse rows live in Atlas: seeded from the synthetic catalog, read on every warehouse.query.
+if(storage instanceof MongoRuntime&&await storage.seedWarehouse(warehouseDocuments()))console.info('Seeded synthetic warehouse rows in MongoDB Atlas');
+const gateway=new ExecutionGateway(runtime,connector,storage instanceof MongoRuntime?storage.warehouseRows:undefined);await gateway.recover();
+if(storage instanceof MongoRuntime)await storage.startNotifications();
+if(authMode==='modelence'&&!(storage instanceof MongoRuntime))throw new Error('Modelence authentication requires MongoDB configuration.');
+const app=createApp(runtime,gateway,authMode==='modelence'?modelenceIdentity:undefined,telemetry,nativeModelenceMonitor);
+if(existsSync('dist/web/index.html')){app.use(express.static('dist/web'));app.get(['/', '/login', '/admin', '/workspace', '/mission'],(_req,res)=>res.sendFile(resolve('dist/web/index.html')));}
+process.env.PORT??='4311';
+const server=storage instanceof MongoRuntime?await startModelence(app):app.listen(Number(process.env.PORT),'127.0.0.1',(error?:Error)=>{if(error){console.error('Precedent startup failed:',error.message);void runtime.close();void connector.close();void telemetry?.close();process.exitCode=1;return;}console.log('Precedent API ready on loopback port '+process.env.PORT+' ('+runtime.mode+'; synthetic tools)');});
+process.on('SIGTERM',()=>server.close(()=>{void Promise.all([runtime.close(),connector.close(),telemetry?.close()]).then(()=>process.exit(0));}));

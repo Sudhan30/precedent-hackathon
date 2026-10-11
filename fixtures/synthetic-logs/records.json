@@ -1,0 +1,79 @@
+{
+ "customer-logs": [
+  {
+   "service": "checkout",
+   "release": 41,
+   "latencyMs": 110,
+   "status": "ok"
+  },
+  {
+   "service": "checkout",
+   "release": 41,
+   "latencyMs": 130,
+   "status": "ok"
+  },
+  {
+   "service": "checkout",
+   "release": 42,
+   "latencyMs": 840,
+   "status": "timeout"
+  },
+  {
+   "service": "checkout",
+   "release": 42,
+   "latencyMs": 960,
+   "status": "timeout"
+  },
+  {
+   "service": "catalog",
+   "release": 42,
+   "latencyMs": 85,
+   "status": "ok"
+  }
+ ],
+ "sandbox-logs": [
+  {
+   "service": "checkout",
+   "release": 41,
+   "latencyMs": 100,
+   "status": "ok"
+  },
+  {
+   "service": "checkout",
+   "release": 42,
+   "latencyMs": 300,
+   "status": "slow"
+  }
+ ],
+ "staging-records": [
+  {
+   "service": "checkout",
+   "status": "healthy"
+  },
+  {
+   "service": "catalog",
+   "status": "healthy"
+  },
+  {
+   "service": "billing",
+   "status": "healthy"
+  }
+ ],
+ "deployments": [
+  {
+   "release": 41,
+   "deployedAt": "2026-10-06T10:00:00Z",
+   "changes": [
+    "Checkout button copy update (WEB-118)"
+   ]
+  },
+  {
+   "release": 42,
+   "deployedAt": "2026-10-09T14:05:00Z",
+   "changes": [
+    "Payment gateway client timeout lowered from 2000ms to 800ms (PAY-311)",
+    "Catalog image cache warm-up (CAT-77)"
+   ]
+  }
+ ]
+}

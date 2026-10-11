@@ -1,0 +1,17 @@
+[Unit]
+Description=Precedent authenticated web application
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=@PROJECT_ROOT@
+Environment=NODE_ENV=production
+Environment=PATH=@PROJECT_ROOT@/.tools/node/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=@PROJECT_ROOT@/.tools/node/bin/node --env-file-if-exists=.env.local --import tsx apps/server/main.ts
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+UMask=0077
+
+[Install]
+WantedBy=default.target

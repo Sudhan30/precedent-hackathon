@@ -1,0 +1,19 @@
+[Unit]
+Description=Precedent private eve model worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+WorkingDirectory=@PROJECT_ROOT@
+Environment=NODE_ENV=development
+Environment=EVE_DEV=1
+Environment=PORT=2000
+Environment=PATH=@PROJECT_ROOT@/.tools/node/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=@PROJECT_ROOT@/.tools/node/bin/node --env-file-if-exists=.env.local node_modules/eve/bin/eve.js start --host 127.0.0.1
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=10
+UMask=0077
+
+[Install]
+WantedBy=default.target

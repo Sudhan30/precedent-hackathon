@@ -1,0 +1,356 @@
+/* Precedent "signal" theme: ink navy chrome, cool hairline panels and a teal signal
+   accent with a soft glow. Loaded last; it restyles existing markup without changing it. */
+:root{
+ --ink-950:#060a13;--ink-900:#0b111d;--ink-800:#121a2a;--ink-700:#1c2639;--ink-600:#2a3650;--ink-500:#55617a;--ink-400:#7d889e;--ink-300:#aab3c5;--ink-200:#d3d9e4;
+ --paper:#f5f7fa;--surface:#ffffff;--stroke:#e2e7ee;--stroke-strong:#cdd5e0;
+ --signal-rgb:45,212,191;--signal:#2dd4bf;--signal-600:#14b8a6;--signal-700:#0b7d71;--signal-050:#ecfbf8;--signal-100:#cff5ee;--glow:rgba(var(--signal-rgb),.30);
+ --ok:#0f7a55;--ok-bg:#e6f5ee;--warn:#9a5b06;--warn-bg:#fdf2e1;--block:#b42318;--block-bg:#fdecea;
+ --font:'Geist',ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;--mono:'Geist Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+ --ink:var(--ink-900);--muted:var(--ink-500);--line:var(--stroke);--green:var(--signal-700);--surface-card:var(--surface);
+ background:var(--paper);color:var(--ink-900);
+}
+html,body{background:var(--paper);font-family:var(--font);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body,button,input,select,textarea{font-family:var(--font)}
+code,kbd,pre{font-family:var(--mono)}
+::selection{background:var(--signal-100);color:var(--ink-900)}
+
+/* Buttons: ink primary with a signal glow on hover; quiet hairline secondary. */
+button{background:var(--ink-900);border:1px solid var(--ink-900);color:#fff;border-radius:10px;font-weight:550;letter-spacing:-.01em;transition:box-shadow .18s,background .18s,border-color .18s,transform .18s}
+button:hover:not(:disabled){background:var(--ink-800);box-shadow:0 0 0 1px var(--signal-600),0 0 22px var(--glow)}
+button:disabled{opacity:.55}
+.secondary,button.secondary{background:var(--surface);color:var(--ink-800);border-color:var(--stroke-strong)}
+.secondary:hover:not(:disabled),button.secondary:hover:not(:disabled){background:var(--surface);border-color:var(--signal-600);box-shadow:0 0 0 3px rgba(var(--signal-rgb),.14)}
+.danger,button.danger{background:var(--block-bg);color:var(--block);border-color:#f3c3be}
+.danger:hover:not(:disabled){background:#fde1de;box-shadow:0 0 0 3px rgba(180,35,24,.12);border-color:#e9a39b}
+button:focus-visible,a:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:2px solid var(--signal-600);outline-offset:2px}
+input,select,textarea{border-color:var(--stroke-strong);border-radius:10px;color:var(--ink-900)}
+
+/* Labels and meta text speak in mono. */
+.eyebrow,.app-header .eyebrow,.section-title .eyebrow,.story-kicker,.story-caption,.app-shell .nav-label,.conversation .pill,.mc-badge,.badge small,.scope-label,.mission-tab-number{font-family:var(--mono);letter-spacing:.08em}
+
+/* App chrome: ink sidebar with a faint signal glow and an indicator bar. */
+.app-shell{background:var(--paper)}
+.app-shell .app-nav{background:radial-gradient(420px 260px at 0% 0%,rgba(var(--signal-rgb),.16),transparent 70%),linear-gradient(180deg,var(--ink-900),var(--ink-950));color:var(--ink-300);border-right:1px solid rgba(255,255,255,.06)}
+.app-shell .app-nav .brand{color:#fff;font-weight:600;letter-spacing:-.03em}
+.app-shell .brand-mark,.login-brand .brand-mark{font-family:var(--font);font-weight:700;font-size:20px;border-radius:10px;background:linear-gradient(135deg,var(--signal),#7dd3fc);color:var(--ink-950);width:34px;height:34px;box-shadow:0 0 18px rgba(var(--signal-rgb),.35)}
+.app-shell .brand small{color:var(--ink-400);font-family:var(--mono);letter-spacing:.14em}
+.app-shell .nav-label{color:var(--ink-400);font-size:10px}
+.app-shell .app-nav>div a{color:var(--ink-300);position:relative;font-size:13px}
+.app-shell .app-nav>div a:hover{background:rgba(255,255,255,.05);color:#fff}
+.app-shell .app-nav a[aria-current=page],.app-shell .app-nav>div a[aria-current=page]:hover{background:rgba(var(--signal-rgb),.10);color:#eafffb;font-weight:600;box-shadow:inset 0 0 0 1px rgba(var(--signal-rgb),.22)}
+.app-shell .app-nav>div a[aria-current=page]::before{content:'';position:absolute;left:-18px;top:10px;bottom:10px;width:3px;border-radius:0 3px 3px 0;background:var(--signal);box-shadow:0 0 12px var(--signal)}
+.app-shell .app-nav>div a .icon{opacity:.85}
+.app-shell .nav-count{background:var(--signal);color:var(--ink-950);font-family:var(--mono)}
+.app-shell .sidebar-note{background:linear-gradient(160deg,rgba(255,255,255,.05),rgba(255,255,255,.015));border:1px solid rgba(255,255,255,.08)}
+.app-shell .sidebar-note>.icon{color:var(--signal)}
+.app-shell .sidebar-note strong{color:#fff}
+.app-shell .sidebar-note p,.app-shell .nav-status{color:var(--ink-400)}
+.status-dot.live{background:var(--signal);box-shadow:0 0 0 3px rgba(var(--signal-rgb),.18),0 0 10px var(--signal)}
+
+/* Header. */
+.app-shell .app-header{border-bottom:1px solid var(--stroke)}
+.app-shell .app-header h1{font-weight:600;letter-spacing:-.02em;color:var(--ink-900)}
+.app-header .eyebrow{color:var(--ink-400);font-size:10px}
+.app-shell .badge{background:var(--surface);border:1px solid var(--stroke);color:var(--ink-800);box-shadow:0 1px 2px rgba(16,24,40,.04)}
+.app-shell .badge>.icon{color:var(--signal-700)}
+.app-shell .badge small{color:var(--ink-400)}
+
+/* Page heroes: an ink band with a signal glow and a faint grid, like a product stage. */
+.app-shell .workspace-heading,.app-shell .supporting-heading,.mission-heading{position:relative;overflow:hidden;isolation:isolate;border-radius:22px;padding:36px 40px;margin-bottom:24px;color:#fff;
+ background:radial-gradient(560px 260px at 88% -10%,rgba(var(--signal-rgb),.28),transparent 65%),radial-gradient(520px 300px at -5% 120%,rgba(99,102,241,.20),transparent 60%),linear-gradient(160deg,var(--ink-800),var(--ink-950));
+ border:1px solid rgba(255,255,255,.06);box-shadow:0 20px 50px -24px rgba(6,10,19,.55)}
+.app-shell .workspace-heading::before,.app-shell .supporting-heading::before,.mission-heading::before{content:'';position:absolute;inset:0;z-index:-1;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:36px 36px;mask-image:radial-gradient(ellipse at 70% 30%,#000 10%,transparent 70%)}
+.app-shell .workspace-heading h2,.app-shell .supporting-heading h2,.mission-heading h2{color:#fff;font-weight:550;letter-spacing:-.035em;font-size:clamp(28px,2.9vw,42px);line-height:1.1}
+.app-shell .workspace-heading p,.app-shell .supporting-heading p,.mission-heading p{color:var(--ink-300);font-size:14px;max-width:62ch}
+.app-shell .workspace-heading .eyebrow,.app-shell .supporting-heading .eyebrow,.mission-heading .eyebrow{color:var(--signal);font-size:10px;letter-spacing:.16em}
+.app-shell .workspace-heading>button{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.16);color:#fff;backdrop-filter:blur(6px)}
+.app-shell .workspace-heading>button:hover:not(:disabled){background:rgba(255,255,255,.1);box-shadow:0 0 0 1px var(--signal),0 0 22px var(--glow)}
+
+/* Panels and cards: white, hairline, quiet depth. */
+.panel,.app-shell .conversation.panel,.mc-card,.admin-metrics article{background:var(--surface);border:1px solid var(--stroke);border-radius:16px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 8px 24px -16px rgba(16,24,40,.10)}
+.notice,.admin-guide,.admin-advanced,.shared-comparison{background:var(--surface);border:1px solid var(--stroke);border-radius:14px}
+.notice{color:var(--ink-500)}
+.section-title h2,.mc-card h3,.mc-empty h3{color:var(--ink-900);letter-spacing:-.02em}
+.section-title .eyebrow{color:var(--signal-700)}
+footer{color:var(--ink-400);border-top:1px solid var(--stroke)}
+
+/* Admin overview. */
+.admin-metrics article>.icon{background:var(--signal-050);color:var(--signal-700);border-radius:10px}
+.admin-metrics strong{color:var(--ink-900);font-weight:600;letter-spacing:-.03em}
+.admin-metrics small{color:var(--ink-500);font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase}
+.admin-metrics p{color:var(--ink-400)}
+.admin-metrics article:first-child{background:radial-gradient(300px 160px at 100% 0%,rgba(var(--signal-rgb),.30),transparent 70%),linear-gradient(160deg,var(--ink-800),var(--ink-950));border-color:rgba(255,255,255,.06)}
+.admin-metrics article:first-child>.icon{background:rgba(var(--signal-rgb),.14);color:var(--signal)}
+.admin-metrics article:first-child strong{color:#fff}
+.admin-metrics article:first-child small,.admin-metrics article:first-child p{color:var(--ink-300)}
+.admin-guide>div>span{background:var(--ink-900);color:var(--signal);border-color:var(--ink-900);font-family:var(--mono)}
+.admin-guide strong{color:var(--ink-900)}
+.admin-guide p{color:var(--ink-500)}
+.server-card{background:linear-gradient(180deg,var(--signal-050),var(--surface));border-color:var(--signal-100)}
+.tool-permission{border-color:var(--stroke)}
+.tool-permission strong{color:var(--ink-900)}
+.tool-permission small,.activity-item small,.activity-item p,.admin-empty p{color:var(--ink-500)}
+.tool-permission input,.toggle input{accent-color:var(--signal-700)}
+.activity-item{border-color:var(--stroke)}
+.admin-empty{background:radial-gradient(ellipse at center,var(--signal-050),transparent 70%)}
+.admin-empty>span{background:var(--signal-050);color:var(--signal-700)}
+.admin-empty h3{color:var(--ink-800)}
+
+/* Agent conversations: neutral baseline, signal-lit governed side. */
+.app-shell .conversation.governed{border-color:rgba(20,184,166,.45);box-shadow:0 0 0 4px rgba(var(--signal-rgb),.07),0 18px 40px -24px rgba(11,125,113,.45)}
+.conversation .terminal-header{background:var(--surface);border-bottom-color:var(--stroke)}
+.conversation.governed .terminal-header{background:linear-gradient(90deg,var(--signal-050),var(--surface));border-bottom-color:var(--signal-100)}
+.conversation .agent-avatar{background:#f1f4f8;border-color:var(--stroke);color:var(--ink-500)}
+.conversation.governed .agent-avatar{background:var(--ink-900);border-color:var(--ink-900);color:var(--signal);box-shadow:0 0 14px rgba(var(--signal-rgb),.35)}
+.conversation .agent-identity h2{color:var(--ink-900);font-weight:600}
+.conversation .agent-identity small,.conversation .conversation-description{color:var(--ink-500)}
+.conversation .conversation-description{background:var(--surface);border-bottom-color:var(--stroke)}
+.conversation .pill{background:#eef1f5;color:var(--ink-500);text-transform:uppercase;font-size:9px}
+.conversation.governed .pill{background:var(--ink-900);color:var(--signal)}
+.conversation .empty-prompt{background:#f1f4f8;border-color:var(--stroke);color:var(--ink-500)}
+.conversation.governed .empty-prompt{background:var(--ink-900);border-color:var(--ink-900);color:var(--signal)}
+.conversation .conversation-empty h3{font-family:var(--font);font-weight:550;letter-spacing:-.03em;color:var(--ink-900);font-size:23px}
+.conversation .conversation-empty p{color:var(--ink-500)}
+.conversation .starter-prompts button{background:var(--surface);border-color:var(--stroke);color:var(--ink-800)}
+.conversation .starter-prompts button:hover:not(:disabled){background:var(--surface);border-color:var(--signal-600);box-shadow:0 0 0 3px rgba(var(--signal-rgb),.12);transform:translateX(2px)}
+.conversation .starter-prompts small{color:var(--ink-400)}
+.conversation .starter-prompts button>.icon:first-child{color:var(--signal-700)}
+.conversation .chat-composer{background:var(--surface)}
+.conversation .composer-surface{background:#f7f9fc;border-color:var(--stroke)}
+.conversation .composer-surface:focus-within{border-color:var(--signal-600);box-shadow:0 0 0 4px rgba(var(--signal-rgb),.14)}
+.conversation .chat-composer textarea{color:var(--ink-900)}
+.conversation .chat-composer textarea::placeholder{color:var(--ink-400)}
+.conversation .chat-send-row>button.send-message{background:var(--ink-700);border-color:var(--ink-700)}
+.conversation.governed .chat-send-row>button.send-message{background:var(--ink-900);border-color:var(--ink-900);color:var(--signal)}
+.conversation .chat-send-row>button.send-message:disabled{background:#e7ebf1;border-color:#e7ebf1;color:var(--ink-400)}
+.conversation .scope-label{background:#eef1f5;color:var(--ink-500);font-size:9px}
+.conversation .chat-send-row summary,.conversation .chat-composer>small{color:var(--ink-400)}
+.conversation .user-message{background:var(--ink-900);color:#fff}
+.conversation .user-message *{color:inherit}
+.conversation .assistant-response>.context-inspector,.conversation .assistant-response>.plan-inspector,.conversation .assistant-response>.run-inspector{background:#f7f9fc;border-color:var(--stroke)}
+.conversation .agent-message p{color:var(--ink-700)}
+.conversation .agent-message small{color:var(--ink-400)}
+.app-shell .chat-runtime{color:var(--ink-400);font-family:var(--mono);font-size:10px;letter-spacing:.02em}
+.app-shell .runtime-dot{background:var(--signal);box-shadow:0 0 8px var(--signal)}
+
+/* Mission Control on the signal palette. */
+.mission{--mc-ok:var(--signal-700);--mc-card:var(--surface)}
+.mission-tabs button{background:var(--surface);border-color:var(--stroke);border-radius:14px;color:var(--ink-900)}
+.mission-tabs button:hover:not(:disabled){background:var(--surface);border-color:var(--signal-600);box-shadow:0 0 0 3px rgba(var(--signal-rgb),.12)}
+.mission-tabs button.active{background:linear-gradient(160deg,var(--ink-800),var(--ink-950));border-color:var(--ink-900);color:#fff;box-shadow:0 0 0 1px rgba(var(--signal-rgb),.35),0 14px 34px -18px rgba(11,125,113,.7)}
+.mission-tabs button.active small{color:var(--ink-300)}
+.mission-tab-number{background:#eef1f5;color:var(--ink-500)}
+.mission-tabs button.active .mission-tab-number{background:var(--signal);color:var(--ink-950);box-shadow:0 0 12px var(--glow)}
+.mc-empty{background:var(--surface);border-color:var(--stroke-strong)}
+.mc-rule{background:var(--signal-050);border-left-color:var(--signal-600);color:var(--ink-900)}
+.mc-counter strong{color:var(--signal-700);font-weight:600;letter-spacing:-.04em}
+.mc-badge{text-transform:uppercase;font-size:10px}
+.mc-badge.ok{background:var(--ok-bg);color:var(--ok);border-color:#bfe6d4}
+.mc-badge.info{background:var(--ink-900);color:var(--signal);border-color:var(--ink-900)}
+.mc-badge.neutral{background:#f1f4f8;color:var(--ink-500);border-color:var(--stroke)}
+.mc-bar i.b,.mc-legend span.b{background:linear-gradient(90deg,var(--signal-700),var(--signal))}
+.mc-seq-name.b{background:var(--ink-900);color:var(--signal)}
+.mc-finding{background:var(--signal-050)!important;color:var(--signal-700)!important}
+.mc-receipts{background:#f7f9fc;border:1px solid var(--stroke)}
+.mc-center circle{fill:var(--ink-900);stroke:var(--signal)}
+.mc-center text{fill:#fff}
+.mc-center .mc-center-version{fill:var(--ink-300)}
+.mc-graph{background:radial-gradient(circle at 50% 50%,rgba(var(--signal-rgb),.10),transparent 60%);border-radius:12px}
+
+/* Sign-in: an ink stage for the story, a clean card for the form. */
+main.login-page{background:radial-gradient(900px 500px at 15% 10%,rgba(var(--signal-rgb),.08),transparent 60%),var(--paper)}
+.login-brand{color:var(--ink-900);font-weight:600;letter-spacing:-.03em}
+.login-story{border-radius:28px;padding:48px 48px 40px;color:#fff;isolation:isolate;overflow:hidden;border:1px solid rgba(255,255,255,.06);
+ background:radial-gradient(520px 320px at 100% 0%,rgba(var(--signal-rgb),.30),transparent 62%),radial-gradient(480px 300px at 0% 110%,rgba(99,102,241,.22),transparent 60%),linear-gradient(160deg,var(--ink-800),var(--ink-950));box-shadow:0 30px 70px -30px rgba(6,10,19,.6)}
+.login-story::before{content:'';position:absolute;inset:0;z-index:-1;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:40px 40px;mask-image:radial-gradient(ellipse at 80% 20%,#000 10%,transparent 72%)}
+.story-kicker{color:var(--signal)}
+.story-kicker>span{background:var(--signal);box-shadow:0 0 10px var(--signal)}
+.login-story h2{color:#fff;font-weight:550;letter-spacing:-.045em;font-size:clamp(40px,4.2vw,62px)}
+.login-story h2 em{font-family:var(--font);font-style:normal;font-weight:550;letter-spacing:-.045em;background:linear-gradient(90deg,var(--signal),#7dd3fc);-webkit-background-clip:text;background-clip:text;color:transparent}
+.login-story>p{color:var(--ink-300)}
+.policy-path>div{color:var(--ink-300)}
+.policy-path small{color:var(--ink-400)}
+.policy-path .path-gate{background:rgba(var(--signal-rgb),.10);border-color:rgba(var(--signal-rgb),.35);color:#eafffb;box-shadow:0 0 28px rgba(var(--signal-rgb),.18)}
+.path-line{background:rgba(255,255,255,.18)}
+.story-caption{color:var(--ink-400)}
+.login-form-side{background:none}
+.login-card{background:var(--surface);border-color:var(--stroke);border-radius:22px;box-shadow:0 1px 2px rgba(16,24,40,.04),0 24px 60px -30px rgba(16,24,40,.25)}
+.login-symbol{background:var(--ink-900);color:var(--signal);border-color:var(--ink-900);box-shadow:0 0 18px rgba(var(--signal-rgb),.3)}
+.login-card h1{color:var(--ink-900);font-weight:600;letter-spacing:-.03em}
+.login-card>p,.login-card .login-help{color:var(--ink-500)}
+.login-card label{color:var(--ink-700);font-weight:600}
+.login-card input{background:var(--surface);border-color:var(--stroke-strong)}
+.login-card input:focus{border-color:var(--signal-600);box-shadow:0 0 0 4px rgba(var(--signal-rgb),.14)}
+.login-card .login-submit{background:var(--ink-900);border-color:var(--ink-900)}
+.login-footer{color:var(--ink-400)}
+@media(max-width:1150px){.login-story{padding:36px 32px}}
+@media(max-width:760px){.app-shell .workspace-heading,.app-shell .supporting-heading,.mission-heading{padding:26px 22px;border-radius:18px}.login-story{padding:28px 22px;border-radius:20px}.app-shell .app-nav>div a[aria-current=page]::before{display:none}}
+/* Refinements. */
+.app-shell .shared-comparison{background:var(--surface);border-color:var(--stroke)}
+.app-shell .shared-comparison>summary{background:transparent;color:var(--ink-700);font-weight:600}
+.mc-sequence ol{gap:6px 22px}
+.mc-sequence li{position:relative}
+.mc-sequence li+li::before{position:absolute;left:-17px;top:50%;transform:translateY(-50%);margin:0;text-decoration:none}
+/* Agent memory: department picker, table hint and memory proposal. */
+.app-shell .department-picker{display:flex;align-items:center;gap:10px;border-color:var(--signal-600);box-shadow:0 0 0 3px rgba(var(--signal-rgb),.12)}
+.department-picker>div{display:grid;line-height:1.2}
+.department-picker>div span{font-weight:600;color:var(--ink-900)}
+.department-picker select{padding:6px 8px;font-size:12px}
+.department-picker button{padding:7px 12px;font-size:12px}
+.department-chip{margin-right:10px}
+.hint-form{display:grid;gap:8px;border:1px dashed var(--stroke-strong);background:#f7f9fc;border-radius:12px;padding:14px 16px;margin:10px 16px}
+.hint-form p{margin:0;color:var(--ink-500);font-size:13px}
+.hint-form label{display:grid;gap:4px;font-size:12px;font-weight:600;color:var(--ink-700)}
+.hint-form input,.hint-form textarea{padding:9px 11px;font-size:13px;font-family:var(--mono)}
+.hint-form button{justify-self:start}
+.memory-card{border-radius:12px;padding:14px 16px;margin:10px 16px;border:1px solid var(--stroke)}
+.memory-card.memory-proposed{border-color:var(--signal-600);background:var(--signal-050);box-shadow:0 0 0 4px rgba(var(--signal-rgb),.10)}
+.memory-card.memory-approved{border-color:#bfe6d4;background:var(--ok-bg)}
+.memory-card.memory-denied{border-color:#f3c3be;background:var(--block-bg)}
+.memory-card p{margin:6px 0;font-size:13px}
+.memory-card small{display:block;color:var(--ink-500);font-family:var(--mono);font-size:11px}
+.memory-card .action-buttons{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.mission-tabs{grid-template-columns:repeat(4,minmax(0,1fr))}
+.mc-memory-list{list-style:none;margin:0 0 12px;padding:0;display:grid;gap:8px}
+.mc-memory-list button{width:100%;display:grid;grid-template-columns:auto 1fr auto;gap:2px 10px;align-items:center;text-align:left;padding:10px 12px}
+.mc-memory-list button small{grid-column:2/3;color:var(--ink-500);font-weight:400}
+.mc-memory-list button>.mc-badge:last-child{grid-column:3;grid-row:1/3}
+.mc-memory-list button.active{border-color:var(--signal-600);box-shadow:0 0 0 3px rgba(var(--signal-rgb),.14)}
+@media (max-width:900px){.mission-tabs{grid-template-columns:minmax(0,1fr)}}
+/* Fixes: user bubble text and the hovered active tab. */
+.app-shell .conversation .user-message,.app-shell .conversation .user-message p,.app-shell .conversation .user-message .message-author{color:#fff}
+.app-shell .conversation .user-message .message-author{opacity:.7}
+.mission-tabs button.active,.mission-tabs button.active:hover:not(:disabled){background:linear-gradient(160deg,var(--ink-800),var(--ink-950));border-color:var(--ink-900);color:#fff;box-shadow:0 0 0 1px rgba(var(--signal-rgb),.35),0 14px 34px -18px rgba(11,125,113,.7)}
+.mission-tabs button.active strong{color:#fff}
+.app-shell .app-header{flex-wrap:wrap}
+@media(max-width:760px){.app-shell .department-picker{order:4;width:100%;flex-wrap:wrap;box-sizing:border-box}.app-shell .department-picker>div{flex:1 1 140px;min-width:0}.app-shell .department-picker select{flex:1 1 120px;min-width:0}}
+
+/* Chat windows in the style of a desktop assistant: warm canvas, a soft user bubble,
+   unboxed readable replies, hairline cards and a roomy composer. Structure is unchanged. */
+.app-shell .conversation{--chat-canvas:#faf9f5;--chat-bubble:#f0eee6;--chat-text:#1f1e1d;--chat-muted:#73726c;--chat-line:#e5e3da;--chat-card:#ffffff}
+.app-shell .conversation.panel{background:var(--chat-canvas);border-color:var(--chat-line);box-shadow:0 1px 2px rgba(20,20,19,.04)}
+.app-shell .conversation.governed{border-color:rgba(20,184,166,.40)}
+.conversation .terminal-header,.conversation.governed .terminal-header{background:var(--chat-canvas);border-bottom:1px solid var(--chat-line);padding:14px 20px}
+.conversation .conversation-description{background:var(--chat-canvas);border-bottom:0;color:var(--chat-muted);font-size:12px;padding:8px 20px 0}
+.conversation .conversation-content{background:var(--chat-canvas);padding:18px 0 24px;color:var(--chat-text)}
+.conversation .conversation-empty{background:var(--chat-canvas)}
+.conversation .conversation-empty h3{font-weight:500;letter-spacing:-.025em;color:var(--chat-text);font-size:26px}
+/* Your message: soft right-aligned bubble, no label. */
+.app-shell .conversation .user-message,.app-shell .conversation .user-message p{background:var(--chat-bubble);color:var(--chat-text)}
+.app-shell .conversation .user-message{margin:6px 22px 22px auto;max-width:82%;width:fit-content;padding:11px 18px;border-radius:14px;border:0;box-shadow:none}
+.app-shell .conversation .user-message p{margin:0;font-size:15px;line-height:1.55}
+.app-shell .conversation .user-message .message-author{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
+/* Assistant: plain prose, no avatar or bubble. */
+.conversation .assistant-response{padding:0 22px}
+.conversation .response-avatar{display:none}
+.conversation .agent-message{margin:0 0 14px;padding:0;border:0;background:none}
+.conversation .agent-message .message-author{position:static;width:auto;height:auto;clip-path:none;display:block;font-size:12px;font-weight:600;color:var(--chat-muted);margin-bottom:4px}
+.conversation .agent-message p,.conversation .chat-message.agent-message p{font-size:15.5px;line-height:1.65;color:var(--chat-text);margin:0}
+.conversation .agent-message small{display:block;font-size:12px;color:var(--chat-muted);margin-top:4px}
+/* Evidence and tool results: quiet hairline cards on the canvas. */
+.conversation .assistant-response>.context-inspector,.conversation .assistant-response>.plan-inspector,.conversation .assistant-response>.run-inspector,.conversation .run-inspector{background:transparent;border:0;border-top:1px solid var(--chat-line);border-radius:0;padding:10px 0;margin:0}
+.conversation details>summary{color:var(--chat-muted);font-size:13px}
+.conversation .tool-activity{display:grid;gap:10px;margin:12px 0}
+.conversation .decision.tool-message{background:var(--chat-card);border:1px solid var(--chat-line);border-left:1px solid var(--chat-line);border-radius:12px;padding:12px 14px;margin:0;box-shadow:0 1px 2px rgba(20,20,19,.03)}
+.conversation .tool-message.outcome-blocked{border-color:#efcfcb;background:#fffbfa}
+.conversation .tool-message.outcome-pending{border-color:#eedcb5;background:#fffdf8}
+.conversation .tool-message p{font-size:14px;line-height:1.55;color:var(--chat-text);margin:6px 0 2px}
+.conversation .tool-message small{color:var(--chat-muted);font-size:12px}
+.conversation .tool-command code{font-size:12.5px;background:var(--chat-bubble);padding:2px 7px;border-radius:6px;color:var(--chat-text)}
+.conversation .tool-command>span[aria-hidden]{display:none}
+.conversation .tool-command strong{font-family:var(--mono);font-size:10px;letter-spacing:.06em;border-radius:999px;padding:3px 8px;background:var(--chat-bubble);color:var(--chat-muted)}
+.conversation .tool-command strong.SUCCEEDED{background:var(--ok-bg);color:var(--ok)}
+.conversation .tool-command strong.BLOCKED{background:var(--block-bg);color:var(--block)}
+.conversation .tool-command strong.PENDING{background:var(--warn-bg);color:var(--warn)}
+.conversation .tool-result pre{background:var(--chat-canvas);border:1px solid var(--chat-line);border-radius:8px;font-size:12.5px;white-space:pre-wrap}
+.conversation .decision.mcp-connection,.conversation .hint-form,.conversation .memory-card{margin:12px 22px;border-radius:12px}
+.conversation .hint-form{background:var(--chat-card);border:1px solid var(--chat-line)}
+.conversation .memory-card.memory-proposed{background:var(--chat-card)}
+/* Composer: large rounded white box. */
+.conversation .chat-composer{background:var(--chat-canvas);padding:10px 18px 14px}
+.conversation .composer-surface{background:#fff;border:1px solid #d9d7ce;border-radius:18px;padding:14px 16px 10px;box-shadow:0 4px 18px -6px rgba(20,20,19,.08)}
+.conversation .composer-surface:focus-within{border-color:#b9b6ab;box-shadow:0 4px 18px -6px rgba(20,20,19,.12),0 0 0 3px rgba(20,20,19,.04)}
+.conversation .chat-composer textarea{font-size:15.5px;color:var(--chat-text);background:transparent}
+.conversation .chat-composer textarea::placeholder{color:#9a988f}
+.conversation .chat-send-row>button.send-message,.conversation.governed .chat-send-row>button.send-message{border-radius:10px;background:var(--chat-text);border-color:var(--chat-text);color:#fff}
+.conversation .chat-send-row>button.send-message:disabled{background:transparent;border-color:transparent;color:#b0aea5}
+.conversation .scope-label{background:var(--chat-bubble);color:var(--chat-muted)}
+.conversation .chat-send-row summary{color:var(--chat-muted)}
+.conversation .chat-composer>small{color:#a3a198;text-align:center}
+.conversation .starter-prompts button{background:#fff;border-color:var(--chat-line);border-radius:12px}
+.conversation .starter-prompts button:hover:not(:disabled){border-color:#c9c6bb;box-shadow:0 2px 10px -4px rgba(20,20,19,.12);transform:none}
+.conversation .starter-prompts button>.icon:first-child{color:var(--chat-muted)}
+.conversation .empty-prompt,.conversation.governed .empty-prompt{background:#fff;border-color:var(--chat-line);color:var(--chat-text);box-shadow:none}
+
+/* Working state: a breathing mark, a shimmering phase label, progress steps, and
+   results that fade in as they arrive. Motion is removed for reduced-motion users. */
+.conversation .thinking{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.conversation .thinking>small{flex-basis:100%}
+.conversation p.thinking{background:linear-gradient(90deg,var(--chat-text) 0%,var(--chat-text) 40%,#b9b6ab 50%,var(--chat-text) 60%,var(--chat-text) 100%);background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent!important;animation:thinking-shimmer 2.2s linear infinite}
+.conversation p.thinking>small{-webkit-text-fill-color:var(--chat-muted);color:var(--chat-muted)}
+.conversation .thinking-mark{flex:0 0 auto;width:14px;height:14px;border-radius:50%;background:radial-gradient(circle at 35% 35%,var(--signal),var(--signal-700));box-shadow:0 0 0 0 rgba(var(--signal-rgb),.45);animation:thinking-breathe 1.6s ease-in-out infinite}
+.conversation.baseline .thinking-mark{background:radial-gradient(circle at 35% 35%,#8b8a83,#4a4944);box-shadow:0 0 0 0 rgba(74,73,68,.3)}
+.conversation .run-steps{list-style:none;margin:12px 0 4px;padding:0;display:grid;gap:8px}
+.conversation .run-steps li{display:flex;gap:10px;align-items:flex-start;color:var(--chat-muted);transition:color .3s}
+.conversation .run-steps strong{display:block;font-size:13px;font-weight:600}
+.conversation .run-steps small{display:block;font-size:12px;margin:0}
+.conversation .run-step-dot{flex:0 0 auto;width:16px;height:16px;margin-top:1px;border-radius:50%;border:1.5px solid #cfccc2;background:#fff;position:relative;transition:background .3s,border-color .3s}
+.conversation .run-steps li.done{color:var(--chat-text)}
+.conversation .run-steps li.done .run-step-dot{background:var(--signal-700);border-color:var(--signal-700)}
+.conversation .run-steps li.done .run-step-dot::after{content:'';position:absolute;left:4.5px;top:1.5px;width:4px;height:8px;border:solid #fff;border-width:0 1.8px 1.8px 0;transform:rotate(45deg)}
+.conversation .run-steps li.current{color:var(--chat-text)}
+.conversation .run-steps li.current .run-step-dot{border-color:var(--signal-600);border-top-color:transparent;animation:step-spin .9s linear infinite}
+.conversation.baseline .run-steps li.done .run-step-dot{background:#4a4944;border-color:#4a4944}
+.conversation.baseline .run-steps li.current .run-step-dot{border-color:#4a4944;border-top-color:transparent}
+.conversation .pending-turn{animation:msg-in .25s ease-out both}
+.conversation .user-message,.conversation .agent-message,.conversation .tool-message,.conversation .memory-card,.conversation .hint-form,.conversation .mcp-connection,.conversation .run-steps{animation:msg-in .35s cubic-bezier(.2,.8,.2,1) both}
+.conversation .tool-activity>.tool-message:nth-child(2){animation-delay:.06s}
+.conversation .tool-activity>.tool-message:nth-child(3){animation-delay:.12s}
+.conversation .conversation-content[aria-busy=true]{scroll-behavior:smooth}
+@keyframes thinking-shimmer{from{background-position:100% 0}to{background-position:-150% 0}}
+@keyframes thinking-breathe{0%,100%{transform:scale(.85);box-shadow:0 0 0 0 rgba(var(--signal-rgb),.40)}50%{transform:scale(1);box-shadow:0 0 0 7px rgba(var(--signal-rgb),0)}}
+@keyframes step-spin{to{transform:rotate(360deg)}}
+@keyframes msg-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.conversation p.thinking{animation:none;color:var(--chat-text)!important;background:none}.conversation .thinking-mark,.conversation .run-steps li.current .run-step-dot{animation:none}}
+
+/* Compact page banners so both chats and their shortcuts fit on one screen. */
+.app-shell .workspace-heading,.mission-heading{padding:20px 28px;margin-bottom:16px;border-radius:18px}
+.app-shell .workspace-heading h2,.mission-heading h2{font-size:clamp(22px,2vw,30px);margin:0}
+.mission-heading p{margin-top:6px}
+@media(min-width:761px){.conversation .conversation-content{height:clamp(380px,calc(100dvh - 500px),640px)}}
+
+/* Team colours: the accent follows the signed-in team (administrators use the admin colour). */
+.app-shell[data-team=admin]{--signal-rgb:167,139,250;--signal:#a78bfa;--signal-600:#8b5cf6;--signal-700:#6d28d9;--signal-050:#f5f3ff;--signal-100:#ede9fe}
+.app-shell[data-team=engineering]{--signal-rgb:96,165,250;--signal:#60a5fa;--signal-600:#3b82f6;--signal-700:#1d4ed8;--signal-050:#eff6ff;--signal-100:#dbeafe}
+.app-shell[data-team=sales]{--signal-rgb:251,191,36;--signal:#fbbf24;--signal-600:#f59e0b;--signal-700:#b45309;--signal-050:#fffbeb;--signal-100:#fef3c7}
+.app-shell[data-team=finance]{--signal-rgb:52,211,153;--signal:#34d399;--signal-600:#10b981;--signal-700:#047857;--signal-050:#ecfdf5;--signal-100:#d1fae5}
+.app-shell[data-team=support]{--signal-rgb:244,114,182;--signal:#f472b6;--signal-600:#ec4899;--signal-700:#be185d;--signal-050:#fdf2f8;--signal-100:#fce7f3}
+.app-shell[data-team]{--glow:rgba(var(--signal-rgb),.30)}
+.app-shell[data-team] .app-nav{background:radial-gradient(460px 340px at 0% 0%,rgba(var(--signal-rgb),.34),transparent 72%),linear-gradient(180deg,var(--ink-900),var(--ink-950))}
+.app-shell[data-team] .workspace-heading,.app-shell[data-team] .mission-heading{background:radial-gradient(640px 240px at 88% 0%,rgba(var(--signal-rgb),.50),transparent 72%),linear-gradient(135deg,var(--ink-800),var(--ink-950))}
+.app-shell[data-team] .app-header{border-bottom:2px solid var(--signal)}
+.app-shell[data-team] .department-chip{border-color:var(--signal);background:var(--signal-050)}
+/* Earlier turns: a quiet toggle, then the same bubble-and-reply shape as the live turn. */
+.conversation .chat-history{margin:0 22px 14px;border-bottom:1px solid var(--chat-line);padding:0 0 10px}
+.conversation .chat-history>summary{cursor:pointer;list-style:none;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;color:var(--chat-muted);padding:4px 10px;border:1px solid var(--chat-line);border-radius:999px;background:var(--chat-card)}
+.conversation .chat-history>summary::-webkit-details-marker{display:none}
+.conversation .chat-history>summary::before{content:'›';display:inline-block;transition:transform .15s}
+.conversation .chat-history[open]>summary::before{transform:rotate(90deg)}
+.conversation .history-turn{display:flex;flex-direction:column;gap:6px;margin-top:14px;opacity:.8}
+.conversation .history-user{align-self:flex-end;max-width:82%;margin:0;padding:9px 16px;border-radius:14px;background:var(--chat-bubble);color:var(--chat-text);font-size:14px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere}
+.conversation .history-agent{margin:0;font-size:14px;line-height:1.55;color:var(--chat-text);white-space:pre-wrap;overflow-wrap:anywhere}
+.conversation .history-result{margin:6px 0 0;font-size:12.5px;line-height:1.45;color:var(--muted,#6b7280);font-family:ui-monospace,SFMono-Regular,Menlo,monospace;overflow-wrap:anywhere}
+/* Desktop workspace fits the screen: the page itself never scrolls, only each chat does,
+   so each composer stays in view. Short or narrow screens keep normal page scrolling. */
+@media(min-width:761px) and (min-height:600px){
+ .app-shell.workspace-page{height:100dvh;min-height:0;overflow:hidden}
+ .workspace-page .app-content{height:100dvh;box-sizing:border-box;display:flex;flex-direction:column;padding-bottom:16px}
+ .workspace-page .app-content>header{flex:none}
+ .workspace-page .app-content>section:not([hidden]){flex:1;min-height:0;display:flex;flex-direction:column}
+ .workspace-page .app-content>section:not([hidden])>*{flex:none}
+ .workspace-page .app-content>section:not([hidden])>.shared-comparison[open]{max-height:40%;overflow:auto}
+ .workspace-page .app-content>section:not([hidden])>.comparison{flex:1 1 0;min-height:0;align-items:stretch;grid-template-rows:minmax(0,1fr)}
+ .workspace-page .conversation.panel{display:flex;flex-direction:column;min-height:0;height:100%}
+ .workspace-page .conversation.panel>*{flex:none}
+ .workspace-page .conversation.panel>.conversation-content{flex:1 1 0;min-height:0;height:auto}
+}
