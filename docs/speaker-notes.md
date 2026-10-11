@@ -10,7 +10,7 @@ Left pane: the same agent **without** Precedent. Right pane: **with** Precedent.
 
 | Time | On screen | Say |
 |---|---|---|
-| 0:00–0:11 | Both agents asked to install a web-search MCP | "Same prompt, two agents. Asked to install a web-search MCP, the agent on the left just connects. On the right, Claude flags it as web search and policy blocks it, before any network contact." |
+| 0:00–0:11 | Both agents asked to install a web-search MCP | "Same prompt, two agents. Asked for a web-search MCP, the left agent just connects. On the right, Claude flags it and policy blocks it before any network contact." |
 | 0:11–0:23 | DeepWiki install command; "already waiting for InfoSec" | "Other MCPs become governed requests. Two colleagues already asked for DeepWiki, so this request raises its priority. Demand is counted in MongoDB, one per person." |
 | 0:23–0:32 | Admin console: High priority, Raindrop evidence, approve | "InfoSec sees the demand, plus Raindrop evidence and a recommendation, and approves it once, company-wide." |
 | 0:32–0:36 | Retry: right side allowed and connected | "Now it just works, through policy." |
