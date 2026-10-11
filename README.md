@@ -1,8 +1,31 @@
-Current hosted demo: **https://precedent.vikhas.com/login**. Sign in as **admin** using the memorable password stored privately in `.data/local-login.env`. See [HOSTING.md](HOSTING.md) for service management and hosting details.
-
 # Precedent
 
-Company memory for every AI decision. Precedent now runs real Groq model planning with MongoDB Atlas persistence and a deterministic policy gate. Demonstration tools use controlled synthetic data. Live semantic retrieval is verified; observability verification remains incomplete; see [PROGRESS.md](PROGRESS.md) for tested behavior and remaining work.
+**The harness that lets company agents act, learn and be stopped, safely.** Every tool and MCP call an agent proposes passes a deterministic policy gate; what agents learn is checked, approved by a human and stored in **MongoDB Atlas**, so the next agent gets it right the first time; and one click quarantines a compromised connector for every agent.
+
+Live demo: **https://precedent.vikhas.com** (synthetic Acme tenant; demo sign-ins are shared with judges separately). See [HOSTING.md](HOSTING.md) for operations and [PROGRESS.md](PROGRESS.md) for the full, tested build log.
+
+## Architecture
+
+![Precedent architecture](docs/architecture.svg)
+
+An annotated version is in [docs/architecture.html](docs/architecture.html).
+
+| Sponsor | What it does in Precedent |
+|---|---|
+| **MongoDB Atlas** | System of record for every decision, policy version and receipt (majority-committed transactions); department-scoped agent memory; MCP request demand; playbooks with **Atlas Vector Search**; **Change Streams** push policy changes to running agents. Lessons written here are read back before the next agent plans: the recursive learning loop. |
+| **Voyage AI** | Embeddings and reranking that find the right memory, policy rule and playbook for each new request. |
+| **Raindrop** | Traces every run and policy decision; an independent **second check** that can hold a self-written rule before it ships; evidence for InfoSec's MCP queue (MCP-04); approvals and denials fed back as signals. |
+| **Claude** (via eve) | Sonnet 5.5 plans, Opus 5.5 retries, Haiku 5.5 chats and judges whether an MCP is a web-search tool. The model only proposes; the policy engine decides. |
+
+## What it does
+
+1. **Block what's unsafe.** Web-search and browsing MCPs are blocked by policy MCP-03 before any network contact (open-web pages can carry prompt injection). No approval path.
+2. **Govern the rest.** Pasting an install command (`claude mcp add …`) becomes an InfoSec request. Demand from distinct people raises its priority; InfoSec sees Raindrop evidence and an MCP-04 recommendation, and one company-wide approval answers everyone waiting.
+3. **Learn once, with a human.** When an agent can't find undocumented data, a user points it to the right table. A policy checkpoint runs, the user approves, and only the pointer is saved to MongoDB for their department. The next engineer gets it on the first try; other departments never see it.
+4. **Improve itself.** Repeated human approvals become a narrow, self-written rule, replayed against recorded history and verified in Raindrop before it can ship.
+5. **Stop in one click.** Quarantine a compromised connector: governed agents are blocked immediately, and the connector's own receipt counter proves nothing got through.
+
+The app shows the same prompt to an agent **without** Precedent (left) and **with** Precedent (right), so every difference is visible.
 
 ## Start the application
 
