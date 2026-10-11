@@ -62,3 +62,16 @@ test('the MCP-03 rule outranks a company allow, and the keyword fallback recogni
  assert.equal(keywordClassification({name:'Parallel Search',endpoint:'https://search-mcp.parallel.ai/mcp'}).searchRelated,true);
  assert.equal(keywordClassification({name:'Docs Preview',endpoint:'https://developer.tenable.com/mcp',purpose:'Read developer documentation'}).searchRelated,false);
 });
+
+test('a pasted MCP link or install command is an MCP request, with name and endpoint filled in',async()=>{
+ const {isMcpConnectionPrompt,nameFromPrompt,endpointFromPrompt}=await import('../packages/mcp/contracts.js');
+ assert.deepEqual([isMcpConnectionPrompt('https://mcp.sentry.dev/mcp'),nameFromPrompt('https://mcp.sentry.dev/mcp'),endpointFromPrompt('https://mcp.sentry.dev/mcp')],[true,'Sentry','https://mcp.sentry.dev/mcp']);
+ assert.equal(nameFromPrompt(`code --add-mcp '{"name":"playwright","command":"npx","args":["@playwright/mcp@latest"]}'`),'Playwright');
+ assert.equal(nameFromPrompt('claude mcp add --transport http sentry https://mcp.sentry.dev/mcp'),'Sentry');
+ assert.equal(isMcpConnectionPrompt('check https://example.com/blog for errors'),false,'an ordinary link stays a chat message');
+ const h=await harness();try{
+  const run=await h.start('https://mcp.sentry.dev/mcp');
+  assert.equal(run.mcpResult.decision.verdict,'REQUIRE_APPROVAL');
+  assert.deepEqual([h.store.get('mcp_request',run.mcpResult.requestId).name,h.store.get('mcp_request',run.mcpResult.requestId).endpoint],['Sentry','https://mcp.sentry.dev/mcp']);
+ }finally{await h.close();}
+});

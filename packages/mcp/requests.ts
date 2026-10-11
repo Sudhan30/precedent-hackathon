@@ -9,8 +9,8 @@ export function updateRequest(service:Precedent,request:McpRequest,fields:Partia
  const run=service.store.get('run',request.runId)!;service.record('run',{...run,status:['DRAFT','PENDING','APPROVED'].includes(updated.status)?'WAITING':'FINISHED',mcpResult:{...run.mcpResult,name:updated.name,endpoint:updated.endpoint??'',status,message,requestId:updated.id}});
  service.emit('mcp.request.'+updated.status.toLowerCase(),{runId:request.runId,sessionId:request.sessionId,requestId:request.id});return updated;
 }
-export function draftRequest(service:Precedent,runId:string,sessionId:string,name:string,purpose:string){
- const session=service.requireCurrentSession(sessionId);const request=mcpRequestSchema.parse({id:randomUUID(),runId,sessionId,demoRunId:service.demo().demoRunId,tenantId:session.tenantId,requesterId:session.principalId??session.actorId??'engineer-1',name,endpoint:null,purpose,policyVersion:service.policy().version,status:'DRAFT',createdAt:service.clock()});service.record('mcp_request',request);return request;
+export function draftRequest(service:Precedent,runId:string,sessionId:string,name:string,purpose:string,endpoint:string|null=null){
+ const session=service.requireCurrentSession(sessionId);const request=mcpRequestSchema.parse({id:randomUUID(),runId,sessionId,demoRunId:service.demo().demoRunId,tenantId:session.tenantId,requesterId:session.principalId??session.actorId??'engineer-1',name,endpoint,purpose,policyVersion:service.policy().version,status:'DRAFT',createdAt:service.clock()});service.record('mcp_request',request);return request;
 }
 export function submitRequest(service:Precedent,id:string,input:{name:string;endpoint:string;purpose:string}){
  const request=currentRequest(service,id);if(request.status!=='DRAFT')throw conflict('This request has already been submitted or closed');

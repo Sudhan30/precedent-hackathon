@@ -8,7 +8,7 @@ import {mcpConnectionDecision} from '../../packages/mcp/decision.js';
 import {claudeClassifier,type McpClassification,type McpClassifier} from '../../packages/mcp/classify.js';
 import {analyzeMcpProposals} from '../../packages/proposals/index.js';
 import {currentRequest,draftRequest,reviewRequest,submitRequest,updateRequest} from '../../packages/mcp/requests.js';
-import {endpointSchema,mcpKey,mcpNameSchema,nameFromPrompt} from '../../packages/mcp/contracts.js';
+import {endpointFromPrompt,endpointSchema,mcpKey,mcpNameSchema,nameFromPrompt} from '../../packages/mcp/contracts.js';
 
 type Run=<T>(fn:(service:Precedent)=>T|Promise<T>)=>Promise<T>;
 interface Dependencies{run:Run;controlAs:<T>(res:express.Response,fn:(service:Precedent)=>T|Promise<T>)=>Promise<T>;exclusive:<T>(fn:()=>Promise<T>)=>Promise<T>;admin:(res:express.Response)=>void;owned:(res:express.Response,id:string)=>void;discover?:(endpoint:string)=>Promise<McpDiscovery>;classify?:McpClassifier;}
@@ -109,7 +109,7 @@ export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive
      const record={id,comparisonId,demoRunId:service.demo().demoRunId,sessionId:session.id,task,mode,scenario:'mcp',planner:'Explicit MCP connection request; no model-generated plan',plan:[],createdAt:service.clock(),status:blocked?'FINISHED':'WAITING',executionIds:[],mcpResult:{name,endpoint:configured?.endpoint??'',status:blocked?'BLOCKED':'CONFIGURATION_REQUIRED',tools:[],decision:{verdict:blocked?'BLOCK':'REQUIRE_APPROVAL',policyVersion:policy.version,ruleId:blocked?governed.ruleId:'MCP-01',reason:blocked?governed.reason:'This MCP is not configured in company policy.'},message:blocked?'No connection attempted.':'Supply the public HTTPS endpoint, then request approval or cancel. No connection has been attempted.',...(checked?{classification:checked}:{})}};
      service.record('run',record);if(checked)service.emit('mcp.policy.checked',{runId:id,sessionId:session.id,searchRelated:checked.searchRelated,judge:checked.judge,ruleId:governed.ruleId});
      if(configured&&!blocked)return startIntent(service,record,configured.endpoint,mode==='baseline'?'Comparison: company MCP permission is not enforced.':'Reviewed company MCP policy permits this endpoint.');
-     if(!blocked){const request=draftRequest(service,id,session.id,name,task);service.emit('mcp.decision.recorded',{runId:id,sessionId:session.id,decision:record.mcpResult.decision,requestId:request.id});const updated={...record,mcpResult:{...record.mcpResult,requestId:request.id}};service.record('run',updated);return updated;}
+     if(!blocked){const request=draftRequest(service,id,session.id,name,/https:\/\/|--add-mcp|\bmcp\s+add\b|mcpServers/i.test(task)?`Connect ${name} MCP.`:task,endpointFromPrompt(task));service.emit('mcp.decision.recorded',{runId:id,sessionId:session.id,decision:record.mcpResult.decision,requestId:request.id});const updated={...record,mcpResult:{...record.mcpResult,requestId:request.id}};service.record('run',updated);return updated;}
      service.emit('mcp.decision.recorded',{runId:id,sessionId:session.id,decision:record.mcpResult.decision});return record;
     });return record.status==='EXECUTING'?dispatch(record.id,record.mcpResult.endpoint):record;
    }));
