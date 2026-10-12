@@ -29,7 +29,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}
 <p class="lead">The model proposes, policy decides, MongoDB remembers. Every agent action passes a deterministic gate; every lesson is checked, approved by a human, stored in MongoDB Atlas and reused by the next agent.</p>
 <div class="figure"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760" font-family="Inter, Segoe UI, Helvetica, Arial, sans-serif" role="img" aria-labelledby="title desc">
   <title id="title">Precedent architecture</title>
-  <desc id="desc">Users talk to agents through Precedent. Every proposed tool or MCP call passes a deterministic policy gate before it runs. Decisions, policy, agent memory and demand live in MongoDB Atlas; Voyage AI ranks memory; Claude plans and judges; Raindrop traces every run and gives an independent second check.</desc>
+  <desc id="desc">Users talk to agents through Precedent. Every proposed tool or MCP call passes a deterministic policy gate before it runs. Decisions, policy, agent memory and demand live in MongoDB Atlas; Voyage AI ranks memory; A Groq-hosted model plans and judges; Raindrop traces every run and gives an independent second check.</desc>
   <defs>
     <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#475569"/></marker>
     <marker id="arrowTeal" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#0F8B7E"/></marker>
@@ -65,7 +65,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}
   <text x="330" y="241" font-size="12" fill="#CBD5E1">MCP-01/03/04 · DATA-18/30/31 · INCIDENT-01 · approvals</text>
   <rect x="300" y="266" width="420" height="62" rx="10" fill="#1E293B"/>
   <text x="330" y="291" font-size="15" font-weight="700" fill="#F8FAFC">MCP gateway + search judge</text>
-  <text x="330" y="313" font-size="12" fill="#CBD5E1">Claude Haiku 5.5 labels; policy blocks web-search MCPs</text>
+  <text x="330" y="313" font-size="12" fill="#CBD5E1">Groq gpt-oss-120b labels; policy blocks web-search MCPs</text>
   <rect x="300" y="338" width="420" height="62" rx="10" fill="#1E293B"/>
   <text x="330" y="363" font-size="15" font-weight="700" fill="#F8FAFC">Learning loop</text>
   <text x="330" y="385" font-size="12" fill="#CBD5E1">Checkpoint → human approval → department memory</text>
@@ -77,7 +77,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}
   <!-- Agent worker -->
   <rect x="280" y="530" width="460" height="96" rx="14" fill="#FFFFFF" stroke="#D9D6CC"/>
   <text x="314" y="562" font-size="17" font-weight="700" fill="#0F1729">Agent worker (eve)</text>
-  <text x="314" y="586" font-size="13" fill="#334155">Claude Sonnet 5.5 plans, Opus 5.5 on retries, Haiku 5.5 chat.</text>
+  <text x="314" y="586" font-size="13" fill="#334155">Groq gpt-oss-120b plans and chats.</text>
   <text x="314" y="608" font-size="13" fill="#334155">Receives policy + memory as context; can only propose steps.</text>
   <line x1="470" y1="528" x2="470" y2="492" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
   <line x1="530" y1="492" x2="530" y2="528" stroke="#475569" stroke-width="2" marker-end="url(#arrow)"/>
@@ -131,7 +131,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}
 <ol>
 <li><b>Ask.</b> A user sends a prompt in the web app. The same prompt can go to an agent without Precedent (left pane) for comparison.</li>
 <li><b>Context.</b> Precedent reads current policy and the user's department memory from MongoDB Atlas; Voyage AI ranks the relevant memory, rules and playbooks.</li>
-<li><b>Plan.</b> The eve worker runs Claude, which proposes steps. It cannot run anything itself.</li>
+<li><b>Plan.</b> The eve worker runs a Groq-hosted model, which proposes steps. It cannot run anything itself.</li>
 <li><b>Decide.</b> The policy engine checks every proposed step: allow, require approval, or block (e.g. MCP-03 for web-search MCPs, DATA-31 for finance-only tables, INCIDENT-01 for quarantined connectors). Decisions are committed to Atlas before any tool is contacted.</li>
 <li><b>Act.</b> Only allowed calls reach tools and MCPs; each call returns a receipt.</li>
 <li><b>Learn.</b> If a user corrected the agent, a policy checkpoint runs and the user approves saving the pointer for their department. The next agent reads it before planning.</li>
@@ -143,7 +143,7 @@ code{font-family:ui-monospace,Menlo,monospace;font-size:.9em}
 <div class="card"><h3>MongoDB Atlas</h3><p>Transactional decisions, policy versions and receipts; department-scoped agent memory; MCP demand; playbooks with Atlas Vector Search; Change Streams for live policy updates; synthetic warehouse rows.</p></div>
 <div class="card"><h3>Voyage AI</h3><p>Embeddings and reranking for memory, policy and playbook retrieval.</p></div>
 <div class="card"><h3>Raindrop</h3><p>Traces and events for every run; the second check on self-written rules; MCP-04 evidence for InfoSec; approve/deny fed back as signals.</p></div>
-<div class="card"><h3>Claude via eve</h3><p>Sonnet 5.5 plans, Opus 5.5 retries, Haiku 5.5 chats and judges MCP requests. The model proposes; policy decides.</p></div>
+<div class="card"><h3>Groq via eve</h3><p>gpt-oss-120b on Groq plans, chats and judges MCP requests. The model proposes; policy decides.</p></div>
 <div class="card"><h3>Precedent API</h3><p>Modelence app hosting the policy engine, MCP gateway, learning loop, self-writing guardrails, impact replay and kill switch.</p></div>
 <div class="card"><h3>Web app</h3><p>Side-by-side chats, admin console for InfoSec, Mission Control for guardrails, kill switch, agent memory and playbooks.</p></div>
 </div>

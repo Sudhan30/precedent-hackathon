@@ -28,7 +28,7 @@ An annotated version is in [docs/architecture.html](docs/architecture.html). The
 | **MongoDB Atlas** | System of record for every decision, policy version and receipt (majority-committed transactions); department-scoped agent memory; MCP request demand; playbooks with **Atlas Vector Search**; **Change Streams** push policy changes to running agents. Lessons written here are read back before the next agent plans: the recursive learning loop. |
 | **Voyage AI** | Embeddings and reranking that find the right memory, policy rule and playbook for each new request. |
 | **Raindrop** | Traces every run and policy decision; an independent **second check** that can hold a self-written rule before it ships; evidence for InfoSec's MCP queue (MCP-04); approvals and denials fed back as signals. |
-| **Claude** (via eve) | Sonnet 5.5 plans, Opus 5.5 retries, Haiku 5.5 chats and judges whether an MCP is a web-search tool. The model only proposes; the policy engine decides. |
+| **Groq** (via eve) | gpt-oss-120b plans, chats and judges whether an MCP is a web-search tool. The model only proposes; the policy engine decides. |
 
 ## What it does
 

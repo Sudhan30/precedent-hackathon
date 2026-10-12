@@ -5,7 +5,7 @@ import type {Precedent} from './service.js';
 import {policySchema} from '../../packages/contracts/index.js';
 import {discoverReviewedMcp,type McpDiscovery} from '../../packages/mcp/index.js';
 import {mcpConnectionDecision} from '../../packages/mcp/decision.js';
-import {claudeClassifier,type McpClassification,type McpClassifier} from '../../packages/mcp/classify.js';
+import {groqClassifier,type McpClassification,type McpClassifier} from '../../packages/mcp/classify.js';
 import {analyzeMcpProposals} from '../../packages/proposals/index.js';
 import {currentRequest,draftRequest,reviewRequest,submitRequest,updateRequest} from '../../packages/mcp/requests.js';
 import {endpointFromPrompt,endpointSchema,mcpKey,mcpNameSchema,nameFromPrompt} from '../../packages/mcp/contracts.js';
@@ -13,7 +13,7 @@ import {endpointFromPrompt,endpointSchema,mcpKey,mcpNameSchema,nameFromPrompt} f
 type Run=<T>(fn:(service:Precedent)=>T|Promise<T>)=>Promise<T>;
 interface Dependencies{run:Run;controlAs:<T>(res:express.Response,fn:(service:Precedent)=>T|Promise<T>)=>Promise<T>;exclusive:<T>(fn:()=>Promise<T>)=>Promise<T>;admin:(res:express.Response)=>void;owned:(res:express.Response,id:string)=>void;discover?:(endpoint:string)=>Promise<McpDiscovery>;classify?:McpClassifier;track?:(run:Record<string,any>)=>void;signal?:(runId:string,name:string,sentiment:'POSITIVE'|'NEGATIVE',properties:Record<string,string|number|boolean>)=>void;}
 const conflict=(message:string)=>Object.assign(new Error(message),{status:409});
-export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive,admin,owned,discover=discoverReviewedMcp,classify=claudeClassifier(),track,signal}:Dependencies){
+export function registerMcpRequests(app:express.Express,{run,controlAs,exclusive,admin,owned,discover=discoverReviewedMcp,classify=groqClassifier(),track,signal}:Dependencies){
  // Each MCP run that reaches an outcome becomes one Raindrop event (keyed by its run id).
  const finished=<T extends Record<string,any>>(run:T)=>{if(run?.status==='FINISHED'||run?.mcpResult?.status==='PENDING_APPROVAL')try{track?.(run);}catch{/* telemetry never affects the outcome */}return run;};
  // Policy check (MCP-03): the judge labels the request outside any transaction; the policy decides.
