@@ -4,9 +4,9 @@
 
 Live demo: **https://precedent.vikhas.com** (synthetic Acme tenant). See [HOSTING.md](HOSTING.md) for operations.
 
-### Judge access
+### Access
 
-Sign in at https://precedent.vikhas.com with any of these demo accounts (password `pass1234` for all). Use one browser window or private window per account.
+The hackathon is over and the shared demo accounts are now private. To try Precedent, ask the maintainers for access or run it yourself (see [HOSTING.md](HOSTING.md)). The accounts and their roles:
 
 | Username | Role | Use it for |
 |---|---|---|
@@ -15,7 +15,7 @@ Sign in at https://precedent.vikhas.com with any of these demo accounts (passwor
 | `sales` | Employee, sales | Shows that engineering's memory never leaks to another department |
 | `finance` | Employee, finance | Querying the finance-only table |
 
-If the demo state looks used, `manager` can press **Reset demo** in Mission Control (about a minute) to rebuild a clean starting point. All data is synthetic.
+Self-registered accounts get no role and cannot use the workspace until an administrator grants one. All data is synthetic.
 
 ## Architecture
 
